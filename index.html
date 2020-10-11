@@ -447,7 +447,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-10-11 15:03:41 / 修改时间：15:35:52" itemprop="dateCreated datePublished" datetime="2020-10-11T15:03:41+08:00">2020-10-11</time>
+              <time title="创建时间：2020-10-11 15:03:41 / 修改时间：21:30:17" itemprop="dateCreated datePublished" datetime="2020-10-11T15:03:41+08:00">2020-10-11</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -470,71 +470,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <a id="more"></a>
-
-<h1 id="窗口分析函数"><a href="#窗口分析函数" class="headerlink" title="窗口分析函数"></a>窗口分析函数</h1><p>函数中用到的表数据如下图：<br><img src="01.png" alt="alt"></p>
-<h3 id="1-分析函数"><a href="#1-分析函数" class="headerlink" title="1. 分析函数"></a>1. 分析函数</h3><ul>
-<li>row_number()</li>
-<li>rank()</li>
-<li>dense_rank()</li>
-</ul>
-<p>这3个函数通常用在组内排序中，但实现的效果却不相同，用法如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    <span class="keyword">name</span>,subject,score,</span><br><span class="line">    row_number() <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) rn, </span><br><span class="line">    <span class="keyword">rank</span>() <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) rk,</span><br><span class="line">    <span class="keyword">dense_rank</span>() <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) dr</span><br><span class="line"><span class="keyword">from</span> grade;</span><br></pre></td></tr></table></figure>
-
-<p>排序之后编号对比， 如下图：<br><img src="02.png" alt="alt"></p>
-<h3 id="2-聚合函数"><a href="#2-聚合函数" class="headerlink" title="2. 聚合函数"></a>2. 聚合函数</h3><ul>
-<li>count()组内计数</li>
-<li>sum()组内求和</li>
-<li>avg()组内求平均值</li>
-<li>max()&amp;min()组内求最大最小值</li>
-</ul>
-<p>下面SQL以sum函数为例展示聚合函数的用法，其他函数的用法类似。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">	<span class="keyword">name</span>,subject,score,</span><br><span class="line">	<span class="keyword">sum</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> subject) <span class="keyword">as</span> sum1, <span class="comment">-- 分组内起始行到当前行的和</span></span><br><span class="line">	<span class="keyword">sum</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> subject <span class="keyword">rows</span> <span class="keyword">between</span> <span class="number">1</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">current</span> <span class="keyword">row</span>) <span class="keyword">as</span> sum2, <span class="comment">--分组内当前行与前一行的和</span></span><br><span class="line">	<span class="keyword">sum</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> subject <span class="keyword">rows</span> <span class="keyword">between</span> <span class="number">1</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="number">2</span> <span class="keyword">following</span>) <span class="keyword">as</span> sum3, <span class="comment">--分组内当前行与后两行的和</span></span><br><span class="line">	<span class="keyword">sum</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> subject <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">current</span> <span class="keyword">row</span>) <span class="keyword">as</span> sum4, <span class="comment">--分组内起始行到当前行的和</span></span><br><span class="line">	<span class="keyword">sum</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> subject <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">current</span> <span class="keyword">row</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> sum5 <span class="comment">---分组内当前行到终止行的和</span></span><br><span class="line"><span class="keyword">from</span> grade;</span><br></pre></td></tr></table></figure>
-<p>计算结果如下图：<br><img src="03.png" alt="alt"></p>
-<h3 id="3-窗口函数"><a href="#3-窗口函数" class="headerlink" title="3. 窗口函数"></a>3. 窗口函数</h3><ul>
-<li>lag(col, n, default)  表示分组内列(col)的当前行之前的第n行, default为默认值</li>
-<li>lead(col, n, default)  表示分组内列(col)的当前行之后的第n行, default为默认值</li>
-</ul>
-<p>用法如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    <span class="keyword">name</span>,subject,score,</span><br><span class="line">    lag(score, <span class="number">1</span>, <span class="number">0</span>) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) lag, <span class="comment">-- lag(score, 1, 0)表示分组内列(score)的当前行之前的第1行, 0为默认值</span></span><br><span class="line">    <span class="keyword">lead</span>(score, <span class="number">1</span>, <span class="number">0</span>) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) <span class="keyword">lead</span> <span class="comment">-- lead(score, 1, 0)表示分组内列(score)的当前行之后的第1行, 0为默认值</span></span><br><span class="line"><span class="keyword">from</span> grade;</span><br></pre></td></tr></table></figure>
-<p>结果如下图：<br><img src="04.png" alt="alt"></p>
-<ul>
-<li>first_value(col) 组内排序第一个值</li>
-<li>last_value(col) 组内排序最后一个值</li>
-</ul>
-<p>用法如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    <span class="keyword">name</span>,subject,score,</span><br><span class="line">    <span class="keyword">first_value</span>(score) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> <span class="keyword">name</span> <span class="keyword">order</span> <span class="keyword">by</span> score) f</span><br><span class="line"><span class="keyword">from</span> grade;</span><br></pre></td></tr></table></figure>
-<p><img src="05.png" alt="alt"></p>
-<h1 id="行列转换"><a href="#行列转换" class="headerlink" title="行列转换"></a>行列转换</h1><h3 id="1-行转列"><a href="#1-行转列" class="headerlink" title="1. 行转列"></a>1. 行转列</h3><p>原始数据如下图：<br><img src="06.png" alt="alt"><br>转换SQL：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">name</span>, collect_list(score) <span class="keyword">from</span> grade <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">name</span>;</span><br></pre></td></tr></table></figure>
-<p>结果：<br><img src="07.png" alt="alt"></p>
-<h3 id="2-列转行"><a href="#2-列转行" class="headerlink" title="2. 列转行"></a>2. 列转行</h3><p>原始数据：<br><img src="08.png" alt="alt"><br>转换SQL：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">name</span>, score <span class="keyword">from</span> grade <span class="keyword">lateral</span> <span class="keyword">view</span> <span class="keyword">explode</span> (scores) tmp <span class="keyword">as</span> score</span><br></pre></td></tr></table></figure>
-<p>结果：<br><img src="09.png" alt="alt"></p>
-<h1 id="JSON处理"><a href="#JSON处理" class="headerlink" title="JSON处理"></a>JSON处理</h1><h2 id="1-JSON对象"><a href="#1-JSON对象" class="headerlink" title="1. JSON对象"></a>1. JSON对象</h2><p>JSON对象的处理可以用get_json_object()函数或json_tuple()函数。</p>
-<p>字段field的值是一个JSONObject：{“status”:0,”version”:”v1.0”}</p>
-<ul>
-<li>get_json_object()  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    get_json_object(<span class="keyword">field</span>, <span class="string">&quot;$.status&quot;</span>),</span><br><span class="line">    get_json_object(<span class="keyword">field</span>, <span class="string">&quot;$.version&quot;</span>)</span><br><span class="line"><span class="keyword">from</span> db.table;</span><br></pre></td></tr></table></figure></li>
-<li>json_tuple()<br>如果需要获取多个key的值，建议用json_tuple函数，性能优于get_json_object()。  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    json.status, json.version</span><br><span class="line"><span class="keyword">from</span> qjdods.cif_credit_report t</span><br><span class="line"><span class="keyword">lateral</span> <span class="keyword">view</span> json_tuple(report_value, <span class="string">&#x27;status&#x27;</span>, <span class="string">&#x27;version&#x27;</span>) <span class="keyword">json</span> <span class="keyword">as</span> 	<span class="keyword">status</span>, <span class="keyword">version</span> <span class="keyword">limit</span> <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
-<h2 id="2-JSON数组"><a href="#2-JSON数组" class="headerlink" title="2. JSON数组"></a>2. JSON数组</h2><h3 id="1-Hive-SQL实现"><a href="#1-Hive-SQL实现" class="headerlink" title="1. Hive SQL实现"></a>1. Hive SQL实现</h3>Hive中的处理思路：</li>
-</ul>
-<ol>
-<li>把JSON对象之间的逗号(，)替换成特殊字符，比如^*，因为之后要以这个特殊字符串来切分</li>
-<li>替换掉中括号([])，为空</li>
-<li>以步骤1中的特殊字符串切分处理后的JSON数组</li>
-<li>结合 lateral view explode()函数，使得JSON数组转成多行JSON对象</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">    <span class="keyword">id</span>, <span class="keyword">json</span></span><br><span class="line"><span class="keyword">from</span> db.table</span><br><span class="line"><span class="keyword">lateral</span> <span class="keyword">view</span> <span class="keyword">explode</span>(</span><br><span class="line">    <span class="keyword">split</span>(</span><br><span class="line">        regexp_replace(regexp_replace(json_array, <span class="string">&quot;&#125;,&quot;</span>, <span class="string">&quot;&#125;^*^*&quot;</span>), <span class="string">&quot;\\[|\\]&quot;</span>, <span class="string">&quot;&quot;</span>), <span class="string">&quot;\\^\\*\\^\\*&quot;</span></span><br><span class="line">    )</span><br><span class="line">) t <span class="keyword">as</span> <span class="keyword">json</span></span><br></pre></td></tr></table></figure>
-<h3 id="3-Spark-SQL实现"><a href="#3-Spark-SQL实现" class="headerlink" title="3. Spark SQL实现"></a>3. Spark SQL实现</h3><p>使用Hive SQL处理JSON数组有一个弊端，如果JSON数组里面有嵌套数组的时候，单纯的替换掉中括号得出的结果就是错误的。而Spark SQL提供了一个内建函数substring_index(str: Column, delim: String, count: Int)，这个函数可以从指定的索引位置，并指定指定分隔符来切分字符串，这样就可以实现只替换JSON数组中的首尾中括号。当然，在Hive SQL也可以自己写一个UDF来实现这个功能。</p>
-<p>实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Json数组行转列</span></span><br><span class="line"><span class="function">def <span class="title">explodeFunc</span><span class="params">(spark: SparkSession, df: Dataset[Row])</span>: Dataset[Row] </span>= &#123;</span><br><span class="line">    <span class="keyword">import</span> spark.implicits._</span><br><span class="line">    df.select($<span class="string">&quot;user_id&quot;</span>,</span><br><span class="line">        explode(</span><br><span class="line">            split(</span><br><span class="line">                substring_index(</span><br><span class="line">                    substring_index(</span><br><span class="line">                        regexp_replace($<span class="string">&quot;json_array&quot;</span>, <span class="string">&quot;&#125;,&quot;</span>, <span class="string">&quot;&#125;^*^*&quot;</span>),</span><br><span class="line">                        <span class="string">&quot;[&quot;</span>, -<span class="number">1</span>),</span><br><span class="line">                    <span class="string">&quot;]&quot;</span>, <span class="number">1</span>),</span><br><span class="line">                <span class="string">&quot;\\^\\*\\^\\*&quot;</span></span><br><span class="line">            )</span><br><span class="line">        ).as(<span class="string">&quot;json&quot;</span>)</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="时间处理"><a href="#时间处理" class="headerlink" title="时间处理"></a>时间处理</h1><ul>
-<li>获取当前时间，并格式化(yyyy-MM-dd HH:mm:ss)  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">from_unixtime(unix_timestamp(), &#x27;yyyy-MM-dd HH:mm:ss&#x27;)</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-
+          <p>Hive SQL和Spark SQL常用函数。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
