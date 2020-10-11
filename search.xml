@@ -174,7 +174,9 @@
   <entry>
     <title>Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理</title>
     <url>/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/</url>
-    <content><![CDATA[<h1 id="窗口分析函数"><a href="#窗口分析函数" class="headerlink" title="窗口分析函数"></a>窗口分析函数</h1><p>函数中用到的表数据如下图：<br><img src="01.png" alt="alt"></p>
+    <content><![CDATA[<a id="more"></a>
+
+<h1 id="窗口分析函数"><a href="#窗口分析函数" class="headerlink" title="窗口分析函数"></a>窗口分析函数</h1><p>函数中用到的表数据如下图：<br><img src="01.png" alt="alt"></p>
 <h3 id="1-分析函数"><a href="#1-分析函数" class="headerlink" title="1. 分析函数"></a>1. 分析函数</h3><ul>
 <li>row_number()</li>
 <li>rank()</li>
@@ -657,7 +659,9 @@
   <entry>
     <title>Python读写Elasticsearch、HBase、Hive</title>
     <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Elasticsearch%E3%80%81HBase%E3%80%81Hive/</url>
-    <content><![CDATA[<h2 id="1-Elasticsearch"><a href="#1-Elasticsearch" class="headerlink" title="1. Elasticsearch"></a>1. Elasticsearch</h2><p>安装Elasticsearch模块：</p>
+    <content><![CDATA[<a id="more"></a>
+
+<h2 id="1-Elasticsearch"><a href="#1-Elasticsearch" class="headerlink" title="1. Elasticsearch"></a>1. Elasticsearch</h2><p>安装Elasticsearch模块：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install elasticsearch==7.1.0</span><br></pre></td></tr></table></figure>
 
 <p>读取ES索引的代码实现：</p>
