@@ -190,10 +190,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-10-10 23:26:15 / 修改时间：23:28:39" itemprop="dateCreated datePublished" datetime="2020-10-10T23:26:15+08:00">2020-10-10</time>
+              <time title="创建时间：2020-10-10 23:26:15" itemprop="dateCreated datePublished" datetime="2020-10-10T23:26:15+08:00">2020-10-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-10-11 09:42:23" itemprop="dateModified" datetime="2020-10-11T09:42:23+08:00">2020-10-11</time>
+              </span>
 
           
 
@@ -206,7 +212,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
+          <a id="more"></a>
+
+<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
 <h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
 
