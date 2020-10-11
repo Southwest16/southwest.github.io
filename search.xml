@@ -162,14 +162,35 @@
       </tags>
   </entry>
   <entry>
+    <title>Flink和Spark Streaming背压</title>
+    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Hadoop集群数据迁移</title>
     <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
     <content><![CDATA[]]></content>
   </entry>
   <entry>
-    <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[]]></content>
+    <title>Impala与Hive的语法区别(持续更新中...)</title>
+    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
+    <content><![CDATA[<p>Impala和Hive的区别</p>
+<a id="more"></a>
+
+<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
+<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
+<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
+<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
+<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Impala</category>
+      </categories>
+      <tags>
+        <tag>Impala</tag>
+        <tag>Hive</tag>
+      </tags>
   </entry>
   <entry>
     <title>Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理</title>
@@ -245,27 +266,6 @@
       <tags>
         <tag>Hive</tag>
         <tag>Spark SQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Impala与Hive的语法区别(持续更新中...)</title>
-    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
-    <content><![CDATA[<p>Impala和Hive的区别</p>
-<a id="more"></a>
-
-<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
-<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
-<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
-<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
-<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Impala</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Impala</tag>
       </tags>
   </entry>
   <entry>
@@ -399,6 +399,36 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
+    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+<a id="more"></a>
+
+<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
+<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
+<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
+<p>SQL实现组内求Top N：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<p>实现思路：</p>
+<ol>
+<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
+<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
+<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
+<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
+</ol>
+<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MySQL SELECT查询非分组聚合列（sql_mode=only_full_group_by）</title>
     <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
     <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
@@ -437,34 +467,9 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
-    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
-<a id="more"></a>
-
-<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
-<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
-<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
-<p>SQL实现组内求Top N：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-<p>实现思路：</p>
-<ol>
-<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
-<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
-<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
-<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
-</ol>
-<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-
-<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-      </tags>
+    <title>MySQL表同步到Hive</title>
+    <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>MySQL行记录大小超过限制 Row size too large</title>
@@ -536,11 +541,6 @@
       <tags>
         <tag>MySQL</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>MySQL表同步到Hive</title>
-    <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
@@ -686,6 +686,11 @@
       </tags>
   </entry>
   <entry>
+    <title>Python读写Phoenix</title>
+    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Spark Connector连接器之整合读写Elasticsearch</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Elasticsearch/</url>
     <content><![CDATA[<p>Elasticsearch提供了对Spark的支持，可以将ES中的索引（一行行的JSON数据）加载为RDD或DataFrame。</p>
@@ -713,16 +718,6 @@
         <tag>Spark</tag>
         <tag>Elasticsearch</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Python读写Phoenix</title>
-    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Spark Connector连接器之整合读写HBase</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark Connector连接器之整合读写Phoenix</title>
@@ -772,6 +767,11 @@
         <tag>HBase</tag>
         <tag>Phoenix</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Spark Connector连接器之整合读写HBase</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark DataFrame导出为Excel文件</title>
@@ -965,6 +965,16 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>单词统计WordCount (Scala/Python/Java)</title>
+    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>pyspark中遇到的坑 (持续更新)</title>
+    <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
     <url>/2020/10/11/pymysql-DBUtils%E5%AE%9E%E7%8E%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%89%B9%E9%87%8F%E8%AF%BB%E5%86%99/</url>
     <content><![CDATA[<h2 id="1-安装pymysql、DBUtils"><a href="#1-安装pymysql、DBUtils" class="headerlink" title="1. 安装pymysql、DBUtils"></a>1. 安装pymysql、DBUtils</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pymysql</span><br><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple DBUtils</span><br></pre></td></tr></table></figure>
@@ -994,50 +1004,6 @@
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>连接池</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>pyspark中遇到的坑 (持续更新)</title>
-    <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>单词统计WordCount (Scala/Python/Java)</title>
-    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
-    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
-<ul>
-<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
-<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
-<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
-<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
-<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
-</ul>
-<a id="more"></a>
-
-<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
-<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*)匹配了尽可能多的字符。</li>
-<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
-</ul>
-<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
-<li>分组2中，(\d+)就匹配了所有数字</li>
-</ul>
-]]></content>
-      <categories>
-        <category>正则表达式</category>
-      </categories>
-      <tags>
-        <tag>正则表达式</tag>
       </tags>
   </entry>
   <entry>
@@ -1078,15 +1044,37 @@
       </tags>
   </entry>
   <entry>
-    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
-    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[]]></content>
+    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
+    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
+<ul>
+<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
+<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
+<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
+<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
+<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
+</ul>
+<a id="more"></a>
+
+<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
+<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*)匹配了尽可能多的字符。</li>
+<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
+</ul>
+<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
+<li>分组2中，(\d+)就匹配了所有数字</li>
+</ul>
+]]></content>
       <categories>
-        <category>Spark</category>
+        <category>正则表达式</category>
       </categories>
       <tags>
-        <tag>Spark</tag>
-        <tag>Hive</tag>
+        <tag>正则表达式</tag>
       </tags>
   </entry>
   <entry>
@@ -1174,6 +1162,18 @@
       <tags>
         <tag>数据仓库</tag>
         <tag>维度模型</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
+    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
