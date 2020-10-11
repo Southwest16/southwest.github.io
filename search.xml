@@ -1,45 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>15分钟搞定 Spark集群安装</title>
-    <url>/2020/10/11/15%E5%88%86%E9%92%9F%E6%90%9E%E5%AE%9A-Spark%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>快速安装Spark集群。</p>
-<a id="more"></a>
-
-
-<p><font color=red>注：以下步骤中，从第1步到第8步，除了元数据库的安装之外，其他步骤都是要在集群所有节点上执行的！</font></p>
-<h1 id="1-官网下载Spark安装包"><a href="#1-官网下载Spark安装包" class="headerlink" title="1. 官网下载Spark安装包"></a>1. 官网下载Spark安装包</h1><p>下载要安装版本的安装包：<a href="https://archive.apache.org/dist/spark/">https://archive.apache.org/dist/spark/</a>。</p>
-<p>我这里下载的是：<a href="https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz%E3%80%82%E5%BB%BA%E8%AE%AE%E7%94%A8%E8%BF%85%E9%9B%B7%E4%B8%8B%E8%BD%BD%EF%BC%8C%E4%BC%9A%E6%AF%94%E8%BE%83%E5%BF%AB%E3%80%82">https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz。建议用迅雷下载，会比较快。</a></p>
-<h1 id="2-解压安装包"><a href="#2-解压安装包" class="headerlink" title="2. 解压安装包"></a>2. 解压安装包</h1><p>将下载好的安装包上传到集群某个节点的/opt目录，解压<br>tar -zxvf spark-2.3.1-bin-hadoop2.6.tgz spark</p>
-<h1 id="3-Spark配置"><a href="#3-Spark配置" class="headerlink" title="3. Spark配置"></a>3. Spark配置</h1><p>进入到Spark安装路径conf目录下：cd ../spark/conf/。复制以下3个文件：<br>cp spark-env.sh.template spark-env.sh<br>cp spark-defaults.conf.template spark-defaults.conf<br>cp log4j.properties.template log4j.properties(INFO改为WARN)</p>
-<h3 id="1-配置spark-env-sh"><a href="#1-配置spark-env-sh" class="headerlink" title="1. 配置spark-env.sh"></a>1. 配置spark-env.sh</h3><p>这个文件主要是配置Spark的环境变量。</p>
-<p>文件中添加以下环境变量，vi spark-env.sh：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=/etc/hadoop/conf <span class="comment"># Hadoop配置文件所在目录</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/cloudera/parcels/CDH/lib/hadoop <span class="comment"># Hadoop安装路径</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=\<span class="variable">$HADOOP_HOME</span>/lib/native:\<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
-<p>主要让Spark找到Hadoop的安装目录。</p>
-<h3 id="2-配置spark-defaults-conf"><a href="#2-配置spark-defaults-conf" class="headerlink" title="2. 配置spark-defaults.conf"></a>2. 配置spark-defaults.conf</h3><p>这个文件主要是一些Spark相关的配置项。<br>以下以Spark on YARN为例，vi spark-defaults.conf：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">spark.master				yarn <span class="comment"># 指定yarn作为资源调度框架</span></span><br><span class="line">spark.eventLog.enabled		<span class="literal">true</span> <span class="comment"># 启动事件日志, 以便后续日志分析</span></span><br><span class="line">spark.eventLog.dir			hdfs://master-1:8021/spark_eventlog</span><br><span class="line">spark.serializer			org.apache.spark.serializer.KryoSerializer <span class="comment"># Kryo序列化性能要好于默认的Java序列化</span></span><br><span class="line">spark.driver.memory			2g <span class="comment"># 指定默认Driver端内存</span></span><br><span class="line">spark.yarn.archive			hdfs://master-1:8021/archive <span class="comment"># 将Spark程序运行所需的jar打包放到这个目录，避免每次提交任务都要从本地Spark安装目录下拷贝jar包</span></span><br></pre></td></tr></table></figure>
-<p>Spark有不计其数的配置项，可根据个人需求进行配置。具体可参考官网<a href="https://spark.apache.org/docs/latest/configuration.html">https://spark.apache.org/docs/latest/configuration.html</a>。</p>
-<h3 id="3-配置log4j-properties"><a href="#3-配置log4j-properties" class="headerlink" title="3. 配置log4j.properties"></a>3. 配置log4j.properties</h3><p>可以配置Spark任务的日志级别。</p>
-<h1 id="4-scp安装文件"><a href="#4-scp安装文件" class="headerlink" title="4. scp安装文件"></a>4. scp安装文件</h1><p>将解压配置好的Spark安装文件拷贝到其他节点：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scp username@hostname:/opt/spark username@hostname:/opt</span><br></pre></td></tr></table></figure>
-
-<h1 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h1><ul>
-<li><p>启动spark shell命令行，写一段简单的Spark程序：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-shell</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>或启动spark sql命令行，执行一些简单的SQL语句：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-sql</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>CDH集群安装</title>
     <url>/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。</p>
@@ -162,13 +123,52 @@
       </tags>
   </entry>
   <entry>
-    <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[]]></content>
+    <title>15分钟搞定 Spark集群安装</title>
+    <url>/2020/10/11/15%E5%88%86%E9%92%9F%E6%90%9E%E5%AE%9A-Spark%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>快速安装Spark集群。</p>
+<a id="more"></a>
+
+
+<p><font color=red>注：以下步骤中，从第1步到第8步，除了元数据库的安装之外，其他步骤都是要在集群所有节点上执行的！</font></p>
+<h1 id="1-官网下载Spark安装包"><a href="#1-官网下载Spark安装包" class="headerlink" title="1. 官网下载Spark安装包"></a>1. 官网下载Spark安装包</h1><p>下载要安装版本的安装包：<a href="https://archive.apache.org/dist/spark/">https://archive.apache.org/dist/spark/</a>。</p>
+<p>我这里下载的是：<a href="https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz%E3%80%82%E5%BB%BA%E8%AE%AE%E7%94%A8%E8%BF%85%E9%9B%B7%E4%B8%8B%E8%BD%BD%EF%BC%8C%E4%BC%9A%E6%AF%94%E8%BE%83%E5%BF%AB%E3%80%82">https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz。建议用迅雷下载，会比较快。</a></p>
+<h1 id="2-解压安装包"><a href="#2-解压安装包" class="headerlink" title="2. 解压安装包"></a>2. 解压安装包</h1><p>将下载好的安装包上传到集群某个节点的/opt目录，解压<br>tar -zxvf spark-2.3.1-bin-hadoop2.6.tgz spark</p>
+<h1 id="3-Spark配置"><a href="#3-Spark配置" class="headerlink" title="3. Spark配置"></a>3. Spark配置</h1><p>进入到Spark安装路径conf目录下：cd ../spark/conf/。复制以下3个文件：<br>cp spark-env.sh.template spark-env.sh<br>cp spark-defaults.conf.template spark-defaults.conf<br>cp log4j.properties.template log4j.properties(INFO改为WARN)</p>
+<h3 id="1-配置spark-env-sh"><a href="#1-配置spark-env-sh" class="headerlink" title="1. 配置spark-env.sh"></a>1. 配置spark-env.sh</h3><p>这个文件主要是配置Spark的环境变量。</p>
+<p>文件中添加以下环境变量，vi spark-env.sh：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=/etc/hadoop/conf <span class="comment"># Hadoop配置文件所在目录</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/cloudera/parcels/CDH/lib/hadoop <span class="comment"># Hadoop安装路径</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=\<span class="variable">$HADOOP_HOME</span>/lib/native:\<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
+<p>主要让Spark找到Hadoop的安装目录。</p>
+<h3 id="2-配置spark-defaults-conf"><a href="#2-配置spark-defaults-conf" class="headerlink" title="2. 配置spark-defaults.conf"></a>2. 配置spark-defaults.conf</h3><p>这个文件主要是一些Spark相关的配置项。<br>以下以Spark on YARN为例，vi spark-defaults.conf：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">spark.master				yarn <span class="comment"># 指定yarn作为资源调度框架</span></span><br><span class="line">spark.eventLog.enabled		<span class="literal">true</span> <span class="comment"># 启动事件日志, 以便后续日志分析</span></span><br><span class="line">spark.eventLog.dir			hdfs://master-1:8021/spark_eventlog</span><br><span class="line">spark.serializer			org.apache.spark.serializer.KryoSerializer <span class="comment"># Kryo序列化性能要好于默认的Java序列化</span></span><br><span class="line">spark.driver.memory			2g <span class="comment"># 指定默认Driver端内存</span></span><br><span class="line">spark.yarn.archive			hdfs://master-1:8021/archive <span class="comment"># 将Spark程序运行所需的jar打包放到这个目录，避免每次提交任务都要从本地Spark安装目录下拷贝jar包</span></span><br></pre></td></tr></table></figure>
+<p>Spark有不计其数的配置项，可根据个人需求进行配置。具体可参考官网<a href="https://spark.apache.org/docs/latest/configuration.html">https://spark.apache.org/docs/latest/configuration.html</a>。</p>
+<h3 id="3-配置log4j-properties"><a href="#3-配置log4j-properties" class="headerlink" title="3. 配置log4j.properties"></a>3. 配置log4j.properties</h3><p>可以配置Spark任务的日志级别。</p>
+<h1 id="4-scp安装文件"><a href="#4-scp安装文件" class="headerlink" title="4. scp安装文件"></a>4. scp安装文件</h1><p>将解压配置好的Spark安装文件拷贝到其他节点：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scp username@hostname:/opt/spark username@hostname:/opt</span><br></pre></td></tr></table></figure>
+
+<h1 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h1><ul>
+<li><p>启动spark shell命令行，写一段简单的Spark程序：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-shell</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>或启动spark sql命令行，执行一些简单的SQL语句：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-sql</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
   </entry>
   <entry>
     <title>Hadoop集群数据迁移</title>
     <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Flink和Spark Streaming背压</title>
+    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
     <content><![CDATA[]]></content>
   </entry>
   <entry>
@@ -190,6 +190,37 @@
       <tags>
         <tag>Impala</tag>
         <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java死锁产生的条件及死锁判断排查</title>
+    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
+    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
+<ol>
+<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
+<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
+<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
+<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
+</ol>
+<a id="more"></a>
+
+<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
+<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
+<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
+<p>参考</p>
+<ol>
+<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>死锁</tag>
       </tags>
   </entry>
   <entry>
@@ -300,37 +331,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java死锁产生的条件及死锁判断排查</title>
-    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
-    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
-<ol>
-<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
-<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
-<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
-<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
-</ol>
-<a id="more"></a>
-
-<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
-<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
-<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
-<p>参考</p>
-<ol>
-<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-        <tag>死锁</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux Sed命令使用指南</title>
     <url>/2020/10/11/Linux-Sed%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</url>
     <content><![CDATA[<h1 id="Sed命令"><a href="#Sed命令" class="headerlink" title="Sed命令"></a>Sed命令</h1><p>sed编辑器被称为流编辑器，它会执行下列操作：</p>
@@ -399,36 +399,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
-    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
-<a id="more"></a>
-
-<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
-<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
-<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
-<p>SQL实现组内求Top N：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-<p>实现思路：</p>
-<ol>
-<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
-<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
-<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
-<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
-</ol>
-<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-
-<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL SELECT查询非分组聚合列（sql_mode=only_full_group_by）</title>
     <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
     <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
@@ -467,9 +437,34 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL表同步到Hive</title>
-    <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
-    <content><![CDATA[]]></content>
+    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
+    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+<a id="more"></a>
+
+<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
+<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
+<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
+<p>SQL实现组内求Top N：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<p>实现思路：</p>
+<ol>
+<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
+<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
+<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
+<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
+</ol>
+<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
   </entry>
   <entry>
     <title>MySQL行记录大小超过限制 Row size too large</title>
@@ -541,6 +536,11 @@
       <tags>
         <tag>MySQL</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>MySQL表同步到Hive</title>
+    <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
@@ -720,6 +720,11 @@
       </tags>
   </entry>
   <entry>
+    <title>Spark Connector连接器之整合读写HBase</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Spark Connector连接器之整合读写Phoenix</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Phoenix/</url>
     <content><![CDATA[<p>Phoenix为NoSQL数据库HBase提供了标准SQL和JDBC API的强大功能，且具备完整的ACID事务处理能力。对于小数据量的查询，其性能可以达到毫秒级别；对于数千万行的数据，其性能也可以达到秒级。</p>
@@ -767,11 +772,6 @@
         <tag>HBase</tag>
         <tag>Phoenix</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Spark Connector连接器之整合读写HBase</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark DataFrame导出为Excel文件</title>
@@ -827,36 +827,6 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
-    <title>Spark中一行代码转换DataFrame所有列的类型</title>
-    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
-<a id="more"></a>
-
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
-<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
-<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
-</ul>
-<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
-<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
-<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
-<ol>
-<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
-<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Spark内存管理(静态内存管理和统一内存管理)</title>
     <url>/2020/10/11/Spark%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%99%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%92%8C%E7%BB%9F%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<p>Spark1.6.0版本之前提供的是静态内存管理，实现类<strong>StaticMemoryManager</strong>；<br>Spark1.6.0版本及之后默认的是统一内存管理，实现类是<strong>UnifiedMemoryManager</strong>。</p>
@@ -892,6 +862,36 @@
       </categories>
       <tags>
         <tag>Spark内存管理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark中一行代码转换DataFrame所有列的类型</title>
+    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
+<a id="more"></a>
+
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
+<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
+<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
+</ul>
+<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
+<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
+<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
+<ol>
+<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
+<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -960,18 +960,13 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
-    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual C++ 14.0 is required</title>
-    <url>/2020/10/11/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual-C-14-0-is-required/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>单词统计WordCount (Scala/Python/Java)</title>
-    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>pyspark中遇到的坑 (持续更新)</title>
     <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual C++ 14.0 is required</title>
+    <url>/2020/10/11/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual-C-14-0-is-required/</url>
     <content><![CDATA[]]></content>
   </entry>
   <entry>
@@ -1004,6 +999,45 @@
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>连接池</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>单词统计WordCount (Scala/Python/Java)</title>
+    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
+    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
+<ul>
+<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
+<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
+<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
+<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
+<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
+</ul>
+<a id="more"></a>
+
+<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
+<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*)匹配了尽可能多的字符。</li>
+<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
+</ul>
+<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
+<li>分组2中，(\d+)就匹配了所有数字</li>
+</ul>
+]]></content>
+      <categories>
+        <category>正则表达式</category>
+      </categories>
+      <tags>
+        <tag>正则表达式</tag>
       </tags>
   </entry>
   <entry>
@@ -1041,40 +1075,6 @@
         <tag>数据仓库</tag>
         <tag>维度建模</tag>
         <tag>星型模型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
-    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
-<ul>
-<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
-<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
-<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
-<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
-<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
-</ul>
-<a id="more"></a>
-
-<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
-<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*)匹配了尽可能多的字符。</li>
-<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
-</ul>
-<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
-<li>分组2中，(\d+)就匹配了所有数字</li>
-</ul>
-]]></content>
-      <categories>
-        <category>正则表达式</category>
-      </categories>
-      <tags>
-        <tag>正则表达式</tag>
       </tags>
   </entry>
   <entry>
