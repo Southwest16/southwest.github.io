@@ -40,16 +40,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hadoop集群数据迁移</title>
-    <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>CDH集群安装</title>
     <url>/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。</p>
@@ -172,6 +162,16 @@
       </tags>
   </entry>
   <entry>
+    <title>Hadoop集群数据迁移</title>
+    <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Flink和Spark Streaming背压</title>
+    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理</title>
     <url>/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/</url>
     <content><![CDATA[<p>Hive SQL和Spark SQL常用函数。</p>
@@ -249,6 +249,27 @@
       </tags>
   </entry>
   <entry>
+    <title>Impala与Hive的语法区别(持续更新中...)</title>
+    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
+    <content><![CDATA[<p>Impala和Hive的区别</p>
+<a id="more"></a>
+
+<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
+<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
+<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
+<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
+<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Impala</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
+        <tag>Impala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JSON数据转成Spark Dataset/DataFrame</title>
     <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
     <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
@@ -277,58 +298,6 @@
         <tag>JSON</tag>
         <tag>DataFrame</tag>
         <tag>Dataset</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Impala与Hive的语法区别(持续更新中...)</title>
-    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
-    <content><![CDATA[<p>Impala和Hive的区别</p>
-<a id="more"></a>
-
-<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
-<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
-<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
-<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
-<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Impala</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Impala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java死锁产生的条件及死锁判断排查</title>
-    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
-    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
-<ol>
-<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
-<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
-<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
-<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
-</ol>
-<a id="more"></a>
-
-<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
-<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
-<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
-<p>参考</p>
-<ol>
-<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-        <tag>死锁</tag>
       </tags>
   </entry>
   <entry>
@@ -397,6 +366,37 @@
       <tags>
         <tag>Linux</tag>
         <tag>sed</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java死锁产生的条件及死锁判断排查</title>
+    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
+    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
+<ol>
+<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
+<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
+<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
+<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
+</ol>
+<a id="more"></a>
+
+<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
+<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
+<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
+<p>参考</p>
+<ol>
+<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>死锁</tag>
       </tags>
   </entry>
   <entry>
@@ -544,37 +544,6 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
-    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
-    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
-    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
-<a id="more"></a>
-
-<p>下面是出现问题的一段代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
-<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
-<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
-<ul>
-<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
-<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
-</ul>
-<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
-<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
-<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
-<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Python使用POP3协议客户端poplib登录邮箱并解压缩zip、rar压缩包</title>
     <url>/2020/10/11/Python%E4%BD%BF%E7%94%A8POP3%E5%8D%8F%E8%AE%AE%E5%AE%A2%E6%88%B7%E7%AB%AFpoplib%E7%99%BB%E5%BD%95%E9%82%AE%E7%AE%B1%E5%B9%B6%E8%A7%A3%E5%8E%8B%E7%BC%A9zip%E3%80%81rar%E5%8E%8B%E7%BC%A9%E5%8C%85/</url>
     <content><![CDATA[<h1 id="1-项目背景"><a href="#1-项目背景" class="headerlink" title="1. 项目背景"></a>1. 项目背景</h1><p>目前在做的一个小项目，需要到登录到邮箱获取压缩包，解压压缩包获取文件，并从文件中抽取出有效数据入库，后续会做一些二次加工，最后用到业务风控中。</p>
@@ -615,6 +584,37 @@
         <tag>ZIP</tag>
         <tag>RAR</tag>
         <tag>压缩包</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
+    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
+<a id="more"></a>
+
+<p>下面是出现问题的一段代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
+<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
+<ul>
+<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
+<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
+</ul>
+<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
+<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
+<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -687,11 +687,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Python读写Phoenix</title>
-    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Spark Connector连接器之整合读写Elasticsearch</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Elasticsearch/</url>
     <content><![CDATA[<p>Elasticsearch提供了对Spark的支持，可以将ES中的索引（一行行的JSON数据）加载为RDD或DataFrame。</p>
@@ -719,6 +714,16 @@
         <tag>Spark</tag>
         <tag>Elasticsearch</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Python读写Phoenix</title>
+    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Spark Connector连接器之整合读写HBase</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark Connector连接器之整合读写Phoenix</title>
@@ -770,11 +775,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Spark Connector连接器之整合读写HBase</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Spark DataFrame导出为Excel文件</title>
     <url>/2020/10/11/Spark-DataFrame%E5%AF%BC%E5%87%BA%E4%B8%BAExcel%E6%96%87%E4%BB%B6/</url>
     <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>有时候我们在进行一些表的计算之后，会生成一些指标，需要导出来给其它同事用，虽说可以将DataFrame直接写成表，然后通过工具(比如Hue)导出为Excel，但是步骤就多了，而且如果要导出的表比较多的话，就更浪费时间了，那么这时候调用第三方插件就可以直接导出为Excel。</p>
@@ -805,11 +805,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Spark connector连接器之整合读写MySQL及问题汇总</title>
-    <url>/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Spark Dataframe转成HashMap</title>
     <url>/2020/10/11/Spark-Dataframe%E8%BD%AC%E6%88%90HashMap/</url>
     <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>现在有一个json串”{‘address’:[[‘33’,’3301’,’330108’],’xx路xx号’]}”, 需要把address解析出来之后, 将行政区划编码替换为对应的省市区县, 最后输出这样的格式(“浙江省杭州市滨江区xx路xx号”). </p>
@@ -826,6 +821,11 @@
         <tag>DataFrame</tag>
         <tag>HashMap</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Spark connector连接器之整合读写MySQL及问题汇总</title>
+    <url>/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark中一行代码转换DataFrame所有列的类型</title>
