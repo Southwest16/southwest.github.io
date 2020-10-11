@@ -20,16 +20,17 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="问题背景问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。 最终在写MySQL的时候，出现这样的报错： 1Caused by: com.mysql.jdbc.exceptions.jdbc">
+  <meta name="description" content="问题背景问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。最终在写MySQL的时候，出现这样的报错： 1Caused by: com.mysql.jdbc.exceptions.jdbc4">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MySQ行记录大小超过限制(Row size too large (＞ 8126). Changing some columns to TEXT or BLOB or ......)">
+<meta property="og:title" content="MySQL行记录大小超过限制 Row size too large">
 <meta property="og:url" content="http://example.com/2020/10/10/MySQ%E8%A1%8C%E8%AE%B0%E5%BD%95%E5%A4%A7%E5%B0%8F%E8%B6%85%E8%BF%87%E9%99%90%E5%88%B6-Row-size-too-large-%EF%BC%9E-8126-Changing-some-columns-to-TEXT-or-BLOB-or/index.html">
 <meta property="og:site_name" content="aof的博客">
-<meta property="og:description" content="问题背景问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。 最终在写MySQL的时候，出现这样的报错： 1Caused by: com.mysql.jdbc.exceptions.jdbc">
+<meta property="og:description" content="问题背景问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。最终在写MySQL的时候，出现这样的报错： 1Caused by: com.mysql.jdbc.exceptions.jdbc4">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-10T12:37:47.000Z">
-<meta property="article:modified_time" content="2020-10-11T01:49:48.065Z">
+<meta property="article:modified_time" content="2020-10-11T01:52:01.337Z">
 <meta property="article:author" content="aof">
+<meta property="article:tag" content="MySQL">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/2020/10/10/MySQ%E8%A1%8C%E8%AE%B0%E5%BD%95%E5%A4%A7%E5%B0%8F%E8%B6%85%E8%BF%87%E9%99%90%E5%88%B6-Row-size-too-large-%EF%BC%9E-8126-Changing-some-columns-to-TEXT-or-BLOB-or/">
@@ -45,7 +46,7 @@
   };
 </script>
 
-  <title>MySQ行记录大小超过限制(Row size too large (＞ 8126). Changing some columns to TEXT or BLOB or ......) | aof的博客</title>
+  <title>MySQL行记录大小超过限制 Row size too large | aof的博客</title>
   
 
 
@@ -183,7 +184,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          MySQ行记录大小超过限制(Row size too large (＞ 8126). Changing some columns to TEXT or BLOB or ......)
+          MySQL行记录大小超过限制 Row size too large
         </h1>
 
         <div class="post-meta">
@@ -200,7 +201,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-11 09:49:48" itemprop="dateModified" datetime="2020-10-11T09:49:48+08:00">2020-10-11</time>
+                <time title="修改时间：2020-10-11 09:52:01" itemprop="dateModified" datetime="2020-10-11T09:52:01+08:00">2020-10-11</time>
               </span>
 
           
@@ -214,10 +215,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。</p>
-<p>最终在写MySQL的时候，出现这样的报错：</p>
+        <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。最终在写MySQL的时候，出现这样的报错：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Caused by: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: <span class="function">Row size too <span class="title">large</span> <span class="params">(&gt; <span class="number">8126</span>)</span>. Changing some columns to TEXT or BLOB or using ROW_FORMAT</span>=DYNAMIC or ROW_FORMAT=COMPRESSED may help. In current row format, BLOB prefix of <span class="number">768</span> bytes is stored inline.</span><br></pre></td></tr></table></figure>
+
 <a id="more"></a>
+
 <h1 id="MySQL版本"><a href="#MySQL版本" class="headerlink" title="MySQL版本"></a>MySQL版本</h1><p>本人使用的MySQL版本为5.6、InnoDB引擎，以下内容也是以这个前提来展开的，MyISAM暂不做介绍。</p>
 <p>注：</p>
 <ul>
@@ -281,6 +283,9 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          </div>
 
         
 
@@ -367,6 +372,10 @@
           <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">日志</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
       </div>
   </nav>
 </div>
