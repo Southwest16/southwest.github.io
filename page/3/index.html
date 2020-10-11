@@ -213,8 +213,18 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-10-11 13:34:03" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:03+08:00">2020-10-11</time>
+              <time title="创建时间：2020-10-11 13:34:03 / 修改时间：15:15:12" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:03+08:00">2020-10-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
             </span>
 
           
@@ -228,7 +238,21 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
+<ol>
+<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
+<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
+<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
+<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -270,8 +294,18 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-10-11 13:34:01" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:01+08:00">2020-10-11</time>
+              <time title="创建时间：2020-10-11 13:34:01 / 修改时间：15:12:17" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:01+08:00">2020-10-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+                </span>
             </span>
 
           
@@ -285,7 +319,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>有时候我们在进行一些表的计算之后，会生成一些指标，需要导出来给其它同事用，虽说可以将DataFrame直接写成表，然后通过工具(比如Hue)导出为Excel，但是步骤就多了，而且如果要导出的表比较多的话，就更浪费时间了，那么这时候调用第三方插件就可以直接导出为Excel。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/11/Spark-DataFrame%E5%AF%BC%E5%87%BA%E4%B8%BAExcel%E6%96%87%E4%BB%B6/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -984,13 +1026,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">35</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1048,7 +1090,7 @@
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">全站共 13.1k 字</span>
+  <span class="post-count">全站共 23.3k 字</span>
 </div>
 
         
