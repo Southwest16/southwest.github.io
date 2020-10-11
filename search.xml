@@ -40,11 +40,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>CDH集群安装</title>
     <url>/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。</p>
@@ -172,6 +167,11 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>Flink和Spark Streaming背压</title>
+    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理</title>
     <url>/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/</url>
     <content><![CDATA[<a id="more"></a>
@@ -248,6 +248,27 @@
       </tags>
   </entry>
   <entry>
+    <title>Impala与Hive的语法区别(持续更新中...)</title>
+    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
+    <content><![CDATA[<p>Impala和Hive的区别</p>
+<a id="more"></a>
+
+<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
+<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
+<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
+<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
+<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Impala</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
+        <tag>Impala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JSON数据转成Spark Dataset/DataFrame</title>
     <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
     <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
@@ -276,6 +297,37 @@
         <tag>JSON</tag>
         <tag>DataFrame</tag>
         <tag>Dataset</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java死锁产生的条件及死锁判断排查</title>
+    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
+    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
+<ol>
+<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
+<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
+<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
+<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
+</ol>
+<a id="more"></a>
+
+<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
+<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
+<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
+<p>参考</p>
+<ol>
+<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>死锁</tag>
       </tags>
   </entry>
   <entry>
@@ -347,58 +399,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Impala与Hive的语法区别(持续更新中...)</title>
-    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
-    <content><![CDATA[<p>Impala和Hive的区别</p>
-<a id="more"></a>
-
-<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
-<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
-<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
-<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
-<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Impala</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Impala</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java死锁产生的条件及死锁判断排查</title>
-    <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
-    <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
-<ol>
-<li>互斥<br>至少有一个被持有的资源处于非共享模式，如果有其他进程/线程请求这个资源，那这个进程/线程必须等待这个资源被释放之后才能获取。</li>
-<li>持有和等待<br>一个进程/线程必须持有至少一个资源，而且同时等待一个被其他进程/线程所持有的资源。</li>
-<li>没有抢占<br>一旦一个进程/线程持有了一个资源，那么这个资源在进程/线程自动释放它之前，都不能被拿走。</li>
-<li>循环等到<br>必须存在一组进程/线程{P0, P1, P2，…，PN}，使得每个P[i]都在等待P[(i + 1) % (N + 1)]。</li>
-</ol>
-<a id="more"></a>
-
-<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>我们这里写一个会导致死锁的Java程序</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLockExample</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">final</span> String s1 = <span class="string">&quot;Flink&quot;</span>;</span><br><span class="line">		<span class="keyword">final</span> String s2 = <span class="string">&quot;Spark&quot;</span>;</span><br><span class="line"></span><br><span class="line">		Thread t1 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 1: locked s1&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">					e.printStackTrace();</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 1: locked s2&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		Thread t2 = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">			<span class="keyword">synchronized</span> (s2) &#123;</span><br><span class="line">				System.out.println(<span class="string">&quot;Thread 2: locked s2&quot;</span>);</span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">synchronized</span> (s1) &#123;</span><br><span class="line">					System.out.println(<span class="string">&quot;Thread 2: locked s1&quot;</span>);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		t1.start();</span><br><span class="line">		t2.start();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>程序运行之后，我们可以通过jps命令找到程序对应的PID，之后通过jstack PID获取堆栈信息，如果程序中产生死锁，那么堆栈信息中会出现如下类似信息：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Java stack information <span class="keyword">for</span> the threads listed above:</span><br><span class="line">===================================================</span><br><span class="line"><span class="string">&quot;Thread-1&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$2</span>.run(DeadLockExample.java:30)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line"><span class="string">&quot;Thread-0&quot;</span>:</span><br><span class="line">        at demo.DeadLockExample<span class="variable">$1</span>.run(DeadLockExample.java:16)</span><br><span class="line">        - waiting to lock &lt;0x000000076b431ab8&gt; (a java.lang.String)</span><br><span class="line">        - locked &lt;0x000000076b431a88&gt; (a java.lang.String)</span><br><span class="line"></span><br><span class="line">Found 1 deadlock.</span><br></pre></td></tr></table></figure>
-<p>堆栈信息中很清楚明白的提示了”Found 1 deadlock”，可以看到线程Thread-0和Thread-1相互持有对方的资源，并等待对方释放资源，但是双方永远不会获取到要请求的资源，就造成了死锁。</p>
-<p>接下来就是根据堆栈信息去排查程序中造成死锁的代码行了。</p>
-<p>参考</p>
-<ol>
-<li><a href="https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html">https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/7_Deadlocks.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Java</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-        <tag>死锁</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL SELECT查询非分组聚合列（sql_mode=only_full_group_by）</title>
     <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
     <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
@@ -428,6 +428,36 @@
 <li><a href="https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html</a></li>
 <li><a href="https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by">https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by</a></li>
 </ol>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
+    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+<a id="more"></a>
+
+<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
+<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
+<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
+<p>SQL实现组内求Top N：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<p>实现思路：</p>
+<ol>
+<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
+<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
+<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
+<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
+</ol>
+<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
 ]]></content>
       <categories>
         <category>MySQL</category>
@@ -508,36 +538,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
-    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
-<a id="more"></a>
-
-<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
-<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
-<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
-<p>SQL实现组内求Top N：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-<p>实现思路：</p>
-<ol>
-<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
-<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
-<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
-<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
-</ol>
-<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-
-<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL表同步到Hive</title>
     <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
     <content><![CDATA[]]></content>
@@ -571,41 +571,6 @@
       <tags>
         <tag>Python</tag>
         <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python解析Excel、PDF、HTML、CSV...文件</title>
-    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
-<a id="more"></a>
-
-<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
-<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
-<p>tabula的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
-
-<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
-<p>&nbsp;</p>
-<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
-<p>html文件的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
-<p>csv文件解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -652,9 +617,39 @@
       </tags>
   </entry>
   <entry>
-    <title>Python读写Phoenix</title>
-    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[]]></content>
+    <title>Python解析Excel、PDF、HTML、CSV...文件</title>
+    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
+<a id="more"></a>
+
+<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
+<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
+<p>tabula的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
+<p>&nbsp;</p>
+<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
+<p>html文件的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
+<p>csv文件解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
   </entry>
   <entry>
     <title>Python读写Elasticsearch、HBase、Hive</title>
@@ -684,10 +679,10 @@
         <category>Python</category>
       </categories>
       <tags>
+        <tag>Hive</tag>
         <tag>Python</tag>
         <tag>Elasticsearch</tag>
         <tag>HBase</tag>
-        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
@@ -715,9 +710,14 @@
         <category>Spark</category>
       </categories>
       <tags>
-        <tag>Elasticsearch</tag>
         <tag>Spark</tag>
+        <tag>Elasticsearch</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Python读写Phoenix</title>
+    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark Connector连接器之整合读写HBase</title>
@@ -768,32 +768,9 @@
         <category>Spark</category>
       </categories>
       <tags>
-        <tag>HBase</tag>
         <tag>Spark</tag>
+        <tag>HBase</tag>
         <tag>Phoenix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark connector连接器之整合读写MySQL及问题汇总</title>
-    <url>/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Spark Dataframe转成HashMap</title>
-    <url>/2020/10/11/Spark-Dataframe%E8%BD%AC%E6%88%90HashMap/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>现在有一个json串”{‘address’:[[‘33’,’3301’,’330108’],’xx路xx号’]}”, 需要把address解析出来之后, 将行政区划编码替换为对应的省市区县, 最后输出这样的格式(“浙江省杭州市滨江区xx路xx号”). </p>
-<a id="more"></a>
-
-<p>开发给到的行政区划表(area)的结构如下图:<br><img src="https://img-blog.csdnimg.cn/20200104143122881.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xvdmV0ZWNobG92ZWxpZmU=,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>因为行政区划表在解析json的时候, 很多地方都会用到, 并且行政区划表本身记录数比较少, 占用的内存空间较小, 就考虑将行政区划编码和对应的省市区县放到一个HashMap中, 查询效率也会比较高. </p>
-<p>有的同学可能会问, 为什么不用join? 如果用join关联, 在查省、市、区县时，要么是先过滤出三个Dataframe，分别代表省、市、区县，然后再分别join，要么就是不区分，关联整个行政区划表3次。这样一来，不仅比较麻烦，效率也不高。</p>
-<h1 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h1><p>代码实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.mutable</span><br><span class="line"></span><br><span class="line">val hashMap = spark.read.table(<span class="string">&quot;ods.area&quot;</span>) <span class="comment">//行政区划表</span></span><br><span class="line">	.select(<span class="string">&quot;area_code&quot;</span>, <span class="string">&quot;area_name&quot;</span>) <span class="comment">//只查询需要的字段(行政区划编码、省市区县名称)</span></span><br><span class="line">	.rdd <span class="comment">//Dataframe转化为RDD</span></span><br><span class="line">	<span class="comment">//RDD中每一行转化成area_code和area_name映射的key-value</span></span><br><span class="line">	.map(row =&gt; row.getAs(<span class="string">&quot;area_code&quot;</span>).toString -&gt; row.getAs(<span class="string">&quot;area_name&quot;</span>).toString) </span><br><span class="line">	.collectAsMap() <span class="comment">//将key-value对类型的RDD转化成Map</span></span><br><span class="line">	.asInstanceOf[mutable.HashMap[String, String]]</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>DataFrame</tag>
-        <tag>HashMap</tag>
       </tags>
   </entry>
   <entry>
@@ -821,10 +798,33 @@
         <category>Spark</category>
       </categories>
       <tags>
-        <tag>Excel</tag>
         <tag>Spark</tag>
         <tag>DataFrame</tag>
+        <tag>Excel</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Spark Dataframe转成HashMap</title>
+    <url>/2020/10/11/Spark-Dataframe%E8%BD%AC%E6%88%90HashMap/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>现在有一个json串”{‘address’:[[‘33’,’3301’,’330108’],’xx路xx号’]}”, 需要把address解析出来之后, 将行政区划编码替换为对应的省市区县, 最后输出这样的格式(“浙江省杭州市滨江区xx路xx号”). </p>
+<a id="more"></a>
+
+<p>开发给到的行政区划表(area)的结构如下图:<br><img src="https://img-blog.csdnimg.cn/20200104143122881.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xvdmV0ZWNobG92ZWxpZmU=,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>因为行政区划表在解析json的时候, 很多地方都会用到, 并且行政区划表本身记录数比较少, 占用的内存空间较小, 就考虑将行政区划编码和对应的省市区县放到一个HashMap中, 查询效率也会比较高. </p>
+<p>有的同学可能会问, 为什么不用join? 如果用join关联, 在查省、市、区县时，要么是先过滤出三个Dataframe，分别代表省、市、区县，然后再分别join，要么就是不区分，关联整个行政区划表3次。这样一来，不仅比较麻烦，效率也不高。</p>
+<h1 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h1><p>代码实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.mutable</span><br><span class="line"></span><br><span class="line">val hashMap = spark.read.table(<span class="string">&quot;ods.area&quot;</span>) <span class="comment">//行政区划表</span></span><br><span class="line">	.select(<span class="string">&quot;area_code&quot;</span>, <span class="string">&quot;area_name&quot;</span>) <span class="comment">//只查询需要的字段(行政区划编码、省市区县名称)</span></span><br><span class="line">	.rdd <span class="comment">//Dataframe转化为RDD</span></span><br><span class="line">	<span class="comment">//RDD中每一行转化成area_code和area_name映射的key-value</span></span><br><span class="line">	.map(row =&gt; row.getAs(<span class="string">&quot;area_code&quot;</span>).toString -&gt; row.getAs(<span class="string">&quot;area_name&quot;</span>).toString) </span><br><span class="line">	.collectAsMap() <span class="comment">//将key-value对类型的RDD转化成Map</span></span><br><span class="line">	.asInstanceOf[mutable.HashMap[String, String]]</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>DataFrame</tag>
+        <tag>HashMap</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark connector连接器之整合读写MySQL及问题汇总</title>
+    <url>/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Spark中一行代码转换DataFrame所有列的类型</title>
@@ -892,6 +892,288 @@
       </categories>
       <tags>
         <tag>Spark内存管理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vim编辑器常用操作</title>
+    <url>/2020/10/11/Vim%E7%BC%96%E8%BE%91%E5%99%A8%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>Vim常用命令</p>
+<a id="more"></a>
+
+<h1 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h1><ul>
+<li>快速移动到行首：^</li>
+<li>快速移动到行尾：$</li>
+<li>快速移动到文件第一行：连按两下g键</li>
+<li>快速移动到文件最后一行：shift+g组合键</li>
+</ul>
+<h1 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h1><ol>
+<li>非编辑模式下输入斜杠(/)，之后紧挨着输入要查找的内容</li>
+<li>按回车键定位到要查找的内容</li>
+<li>按n键查找下一个；shift+n键查找上一个</li>
+</ol>
+<h1 id="行号"><a href="#行号" class="headerlink" title="行号"></a>行号</h1><ul>
+<li><h2 id="显示行号"><a href="#显示行号" class="headerlink" title="显示行号"></a>显示行号</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>输入英文的冒号</li>
+<li>输入set number，然后按回车键即会显示行号</li>
+</ol>
+<ul>
+<li><h2 id="取消行号"><a href="#取消行号" class="headerlink" title="取消行号"></a>取消行号</h2></li>
+</ul>
+<ol>
+<li>非编辑模式下输入英文的冒号</li>
+<li>输入set nonumber，然后按回车键即会取消行号</li>
+</ol>
+<h1 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h1><ul>
+<li><h2 id="批量注释"><a href="#批量注释" class="headerlink" title="批量注释"></a>批量注释</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>键盘上下键移动到要注释文本的第一行</li>
+<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
+<li>键盘上下键移动到要注释文本的最后一行</li>
+<li>组合键shift + i 进入编辑模式</li>
+<li>输入注释符号(#或者//等)</li>
+<li>连续按两次ESC键，此时会看到选中的行被注释</li>
+</ol>
+<ul>
+<li><h2 id="批量取消注释"><a href="#批量取消注释" class="headerlink" title="批量取消注释"></a>批量取消注释</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>键盘上下键移动到要取消注释文本的第一行</li>
+<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
+<li>键盘上下键移动到要取消注释文本的最后一行</li>
+<li>按下键盘的d键，此时会看到选中的行被取消注释</li>
+</ol>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Vim</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>YARN/Hadoop/HDFS常用命令</title>
+    <url>/2020/10/11/YARN-Hadoop-HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual C++ 14.0 is required</title>
+    <url>/2020/10/11/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual-C-14-0-is-required/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
+    <url>/2020/10/11/pymysql-DBUtils%E5%AE%9E%E7%8E%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%89%B9%E9%87%8F%E8%AF%BB%E5%86%99/</url>
+    <content><![CDATA[<h2 id="1-安装pymysql、DBUtils"><a href="#1-安装pymysql、DBUtils" class="headerlink" title="1. 安装pymysql、DBUtils"></a>1. 安装pymysql、DBUtils</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pymysql</span><br><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple DBUtils</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h2 id="2-创建连接池"><a href="#2-创建连接池" class="headerlink" title="2. 创建连接池"></a>2. 创建连接池</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">from</span> DBUtils.PooledDB <span class="keyword">import</span> PooledDB, PooledDBError</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_pool</span>():</span></span><br><span class="line">	pool = PooledDB(</span><br><span class="line">	    creator=pymysql,  <span class="comment"># 数据库连接对象</span></span><br><span class="line">	    host=<span class="string">&quot;host&quot;</span>,</span><br><span class="line">	    user=<span class="string">&quot;user&quot;</span>,</span><br><span class="line">	    password=<span class="string">&quot;password&quot;</span>,</span><br><span class="line">	    database=<span class="string">&quot;database&quot;</span>,</span><br><span class="line">	    charset=<span class="string">&quot;charset&quot;</span>,</span><br><span class="line">	    blocking=<span class="literal">True</span>,  <span class="comment"># 超过最大连接数时该如何处理后来的任务。设置为true就表示阻塞等待直达有空闲连接</span></span><br><span class="line">	    maxconnections=<span class="number">2</span>,  <span class="comment"># 连接池所能允许的最大连接数</span></span><br><span class="line">	    mincached=<span class="number">1</span>,  <span class="comment"># 最小初始化空闲连接数</span></span><br><span class="line">	    autocommit=<span class="literal">True</span>  <span class="comment"># 是否要自动提交</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">return</span> pool.connection()</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-读数据"><a href="#3-读数据" class="headerlink" title="3. 读数据"></a>3. 读数据</h2><h3 id="1-只读一行"><a href="#1-只读一行" class="headerlink" title="1. 只读一行"></a>1. 只读一行</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fetch_one</span>(<span class="params">self, conn, sql</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line"></span><br><span class="line">        cursor.execute(sql)</span><br><span class="line">        <span class="keyword">return</span> cursor.fetchone()[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-批量读取"><a href="#2-批量读取" class="headerlink" title="2. 批量读取"></a>2. 批量读取</h3><p>批量读取的场景，如果要返回的数据量比较大，为了避免给数据库造成太大负载和占用过多带宽资源，可以选择分批读取数据。比如要读取10万条数据，每批只读2000条。</p>
+<p>思路：</p>
+<ol>
+<li>先通过一条SQL获取要读取的数据行数</li>
+<li>每读取一批之后，自增主键减去2000</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">sql_count = <span class="string">&quot;select id from db.table where id between 25000 and 125000&quot;</span></span><br><span class="line">sql = <span class="string">&quot;select col1, col2, col3 from db.table&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fetch_many</span>(<span class="params">self, conn, sql_count, sql, size</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 计算要读取的数据行数</span></span><br><span class="line">        cursor.execute(sql_count)</span><br><span class="line">        cursor.fetchall()</span><br><span class="line">        row_count = cursor.rowcount</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 分配读取数据</span></span><br><span class="line">        cursor.execute(sql)</span><br><span class="line">        <span class="keyword">while</span> row_count &gt; <span class="number">0</span>:</span><br><span class="line">            records = cursor.fetchmany(size)</span><br><span class="line">            row_count -= size</span><br><span class="line"></span><br><span class="line">            <span class="keyword">yield</span> records</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="4-写数据"><a href="#4-写数据" class="headerlink" title="4. 写数据"></a>4. 写数据</h2><p>如果可以，尽量进行批量写，因为executemany()方法在多行插入和更新的场景下提升写性能。否则，就等于是循环执行execute()方法一条条的写，性能较差。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">execute_many</span>(<span class="params">self, conn, sql, args</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 从连接池中获取一个连接</span></span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line">        cursor.executemany(sql, args)</span><br><span class="line">    <span class="keyword">except</span> PooledDBError <span class="keyword">as</span> e:</span><br><span class="line">        logger.error(<span class="string">&quot;Failed to insert records into MySQL table &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Python</tag>
+        <tag>连接池</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>pyspark中遇到的坑 (持续更新)</title>
+    <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>单词统计WordCount (Scala/Python/Java)</title>
+    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
+    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
+<ul>
+<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
+<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
+<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
+<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
+<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
+</ul>
+<a id="more"></a>
+
+<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
+<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*)匹配了尽可能多的字符。</li>
+<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
+</ul>
+<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
+<li>分组2中，(\d+)就匹配了所有数字</li>
+</ul>
+]]></content>
+      <categories>
+        <category>正则表达式</category>
+      </categories>
+      <tags>
+        <tag>正则表达式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>手把手教你维度数据建模</title>
+    <url>/2020/10/11/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1/</url>
+    <content><![CDATA[<p>在这篇文章中，你将会学到如何一步步地进行维度数据建模，你将看到如何在真实的场景中使用维度模型。</p>
+<a id="more"></a>
+
+<h1 id="什么是维度数据建模"><a href="#什么是维度数据建模" class="headerlink" title="什么是维度数据建模"></a>什么是维度数据建模</h1><p>维度数据建模是在进行数仓设计时的一种数据建模方法。这种建模方法的主要目标是为了提高数据检索效率，对select查询操作进行了优化。维度数据建模最适合数仓星型模型和雪花模型。</p>
+<p>数仓中的维度数据建模不同于ER建模(Entity-Relationship Model，关系-实体模型)，ER建模的主要目标是通过减少数据的冗余来规范化数据， 而维度数据建模使得数据一旦存储在数仓中后，能被更容易地获取。维度模型是许多OLAP系统的底层数据模型。</p>
+<p>维度模型是被传奇人物Ralph Kimball提出的，你可以读读他的这本书<a href="https://www.amazon.in/Data-Warehouse-Toolkit-Complete-Dimensional/dp/8126544279/ref=as_li_ss_tl?ie=UTF8&keywords=kimball&qid=1470065827&ref_=sr_1_1&s=books&sr=1-1&linkCode=ll1&tag=dwgeecom-21&linkId=fa8b801a6414c3020dad1a1d29a429f6">The Data Warehouse Toolkit</a></p>
+<h1 id="维度数据建模的步骤"><a href="#维度数据建模的步骤" class="headerlink" title="维度数据建模的步骤"></a>维度数据建模的步骤</h1><p>接下来我们通过一个示例来了解维度数据建模的步骤。场景：您希望存储某个MedPlus商店每天销售多少片paracetamol 和 diclofenac 的信息。建模过程中，所有数据都归为两类：维度表和事实表。事实表中包含度量信息，维度表中包含限定度量的信息。</p>
+<p>下面是数据仓库维度建模示例的步骤：</p>
+<h2 id="第一步：选择业务目标"><a href="#第一步：选择业务目标" class="headerlink" title="第一步：选择业务目标"></a>第一步：选择业务目标</h2><p>在我们的例子中，业务目标就是存储单个商店每天paracetamol 和diclofenac 的销售数据。</p>
+<h2 id="第二步：确定粒度"><a href="#第二步：确定粒度" class="headerlink" title="第二步：确定粒度"></a>第二步：确定粒度</h2><p>粒度是表中存储的最低级别的信息。例如，如果表包含每日销售数据，则粒度为“每日”。</p>
+<p>在我们的例子中，假设一个特定的MedPlus商店在特定的一天销售1000片paracetamol ，那么粒度是每天，而在特定的月份销售10000片，那么粒度是每月。</p>
+<p>设定粒度信息是非常重要的，我们的例子采用的是“每日”的粒度。</p>
+<h2 id="第三步：确定维度和维度属性"><a href="#第三步：确定维度和维度属性" class="headerlink" title="第三步：确定维度和维度属性"></a>第三步：确定维度和维度属性</h2><p>在我们的例子中，可以确定三个维度：商店、药品(paracetamol 和diclofenac)和日期。下面是维度表的结构。<br><strong>Medicine</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | Paracetamol |<br>| 2 | Diclofenac |</p>
+<p><strong>Shop</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | shop1|<br>| 2 | shop2|<br>| 3 | shop3|</p>
+<p><strong>Day</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | 2019-01-01|<br>| 2 | 2019-01-02|<br>| 3 | 2019-01-03|</p>
+<h2 id="第四步：确定事实表"><a href="#第四步：确定事实表" class="headerlink" title="第四步：确定事实表"></a>第四步：确定事实表</h2><p>事实表包含的是一些可度量的东西。例子中，药片的销售量就是一个度量，我们可以创建单独的事实表来存储这些度量。</p>
+<p>例子中，粒度是每天销售的药片，我将Medicine、Shop和Day这三张表的SK列添加到下面的事实表中。<br><img src="01.png" alt="alt"><br>在这个例子中，我们创建了3个维表和1个事实表，维度表通过外键连接到事实表上，这个模型看起来像个星型，也被称为<strong>星型模型</strong>。</p>
+<h1 id="维度建模的优势"><a href="#维度建模的优势" class="headerlink" title="维度建模的优势"></a>维度建模的优势</h1><ol>
+<li>提升了数据查询效率：通过冗余存储减少了关联查询</li>
+<li>简化了业务报表逻辑</li>
+<li>更容易理解：维度模型中的数据不是维度就是事实</li>
+<li>可扩展性：维度模型可以更新新的维度。</li>
+</ol>
+<h1 id="维度数据建模工具"><a href="#维度数据建模工具" class="headerlink" title="维度数据建模工具"></a>维度数据建模工具</h1><p>建议可以尝试被广泛使用的erwin数据模型工具。</p>
+]]></content>
+      <categories>
+        <category>数仓建模</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+        <tag>维度建模</tag>
+        <tag>星型模型</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
+    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据仓库架构、维度数据建模、雪花模型和星型模型</title>
+    <url>/2020/10/11/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E6%9E%B6%E6%9E%84%E3%80%81%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1%E3%80%81%E9%9B%AA%E8%8A%B1%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%98%9F%E5%9E%8B%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[<p>在GeeksforGeeks上看到了几篇关于数据仓库架构、维度数据建模的文章，进行翻译整理并加入了一些自己的理解，输出了这篇文章。</p>
+<a id="more"></a>
+
+<h1 id="一、数据仓库架构"><a href="#一、数据仓库架构" class="headerlink" title="一、数据仓库架构"></a>一、数据仓库架构</h1><p>数据仓库是将不同来源的数据在统一的模式下组织起来的异构集合。构建数据仓库有两种方法：自顶向下和自底向上。</p>
+<h2 id="1-自顶向下"><a href="#1-自顶向下" class="headerlink" title="1. 自顶向下"></a>1. 自顶向下</h2><p>自顶向下的架构如下图：<br><img src="01.png" alt="alt"><br>图中各主件的作用如下：</p>
+<ol>
+<li><p>External Sources<br>外部源是不管收集的数据是何种类型的数据源。数据可以是结构化的、半结构化的和非结构化的。结构化的数据，比如：关系型数据库中的表等；半结构化的数据，比如：Json串、XML文件等；非结构化的数据，比如：图片、音频、视频等。</p>
+</li>
+<li><p>Stage Area<br>由于从外部数据源抽取的数据没有特定的格式，因此需要对这些数据进行处理，以将其加载到数据仓库中。为此，建议使用ETL工具：</p>
+<p> <strong>E(Extracted)</strong>: 从外部数据源抽取数据。<br> <strong>T(Transform)</strong>: 将抽取的数据转换成标准格式。<br> <strong>L(Load):</strong> 将标准格式的数据加载进数据仓库。</p>
+<ol start="3">
+<li>Data-warehouse<br>在自顶向下的方法中，数据仓库存储最原始的数据。</li>
+<li>Data Marts<br>数据集市也是存储组件中的一部分。它存储由不同主题组织起来的数据。</li>
+<li>Data Mining<br>数据挖掘就是对数据仓库中的大量数据进行分析处理。利用数据挖掘算法找出数据仓库中隐藏的数据价值。</li>
+</ol>
+</li>
+</ol>
+<p>自顶向下的方法是被数据仓库之父Bill Inmon定义的——数据仓库作为公司的中央仓库，而数据集市从完整的数据仓库创建而来。</p>
+<h3 id="自顶向下的优点"><a href="#自顶向下的优点" class="headerlink" title="自顶向下的优点"></a>自顶向下的优点</h3><ol>
+<li>由于数据集市是从数据仓库创建而来，因此提供了数据集市的一致维度视图。</li>
+<li>这种模型可以很好的应对业务数据的变化。大公司会更喜欢采用这种方法。</li>
+<li>从数据仓库创建数据集市比较容易。</li>
+</ol>
+<h3 id="自顶向下的缺点"><a href="#自顶向下的缺点" class="headerlink" title="自顶向下的缺点"></a>自顶向下的缺点</h3><ol>
+<li>设计和维护的成本比较高。</li>
+</ol>
+<h2 id="2-自底向上"><a href="#2-自底向上" class="headerlink" title="2. 自底向上"></a>2. 自底向上</h2><p>自底向上架构如下图：<br><img src="02.png" alt="alt"><br>整个数据的流转过程：</p>
+<ol>
+<li>首先，数据会从外部数据源被抽取过来。</li>
+<li>数据经过ETL之后，不再进入数据仓库，而是被加载进数据集市。每个数据集市针对的是不同的业务主题，并且可以直接提供报表功能。</li>
+<li>将数据集市整合进数据仓库。</li>
+</ol>
+<p>自下而上的方法是Ralph Kimball(数据仓库和BI领域的权威专家)提出的——首先创建数据集市，并为分析提供单个业务视图，在创建完整的数据集市之后再创建数据仓库。</p>
+<h3 id="自底向上的优点"><a href="#自底向上的优点" class="headerlink" title="自底向上的优点"></a>自底向上的优点</h3><ol>
+<li>由于是先创建数据集市，所以会快速生成报表。</li>
+<li>数据仓库可以根据数据集市进行扩展。</li>
+<li>设计成本比较低。</li>
+</ol>
+<h3 id="自底向上的缺点"><a href="#自底向上的缺点" class="headerlink" title="自底向上的缺点"></a>自底向上的缺点</h3><ol>
+<li>由于维度视图的局限性，造成这种方法没有对数据的一个全局把控。</li>
+</ol>
+<h1 id="二、维度数据建模"><a href="#二、维度数据建模" class="headerlink" title="二、维度数据建模"></a>二、维度数据建模</h1><p>维度建模的概念是由Ralph Kimball提出的，是许多OLAP(Online Analytical Processing，联机分析处理)系统使用的数据模型。维度建模有两个比较常用的建模模型：<strong>星型模型</strong>和<strong>雪花模型</strong>，模型由<strong>事实表</strong>和<strong>维度表</strong>组成。</p>
+<p>维度建模步骤如下图：</p>
+<p><img src="03.png" alt="alt"></p>
+<ol>
+<li>Identifying the business objective<br>第一步就是确定业务对象，比如，销售(Sales)、人力资源(HR)、促销(Marketing)等。业务对象的选择直接影响着之后所用数据的质量，是数据建模中非常重要的一步。</li>
+<li>Identifying Granularity<br>确定要存储到表中的数据的粒度。<ol start="3">
+<li>Indentify Dimensions and ites Attributes<br>维度用来对数据仓库中的事实数据进行分类。比如，数据维度可能会是时间中的年、月、日，也可能是地域中的省、市、区县等等。</li>
+</ol>
+</li>
+<li>Indentifying the Fact<br>确认事实表，比如，商品价格、尺寸等。</li>
+<li>Building of Schema<br>构建模型，比较常用的模型有：星型模型和雪花模型。</li>
+</ol>
+<h1 id="三、星型模型和雪花模型"><a href="#三、星型模型和雪花模型" class="headerlink" title="三、星型模型和雪花模型"></a>三、星型模型和雪花模型</h1><h2 id="1-星型模型"><a href="#1-星型模型" class="headerlink" title="1. 星型模型"></a>1. 星型模型</h2><p>星型模型是数仓建模中较为常用的模型，它包含一个或多个事实表，以及连接到事实表上的维度表。星型模型相较于雪花模型在查询处理方面是更为高效的。</p>
+<p>星型模型之所以被称为星型，是因为它的物理模型就像是一个恒星的形状，中心是一个事实表，事实表上连着维度表。如下图：<br><img src="04.png" alt="alt"><br>在上图中，SALES就是一个事实表，其他的都是维度表，并各自都有属于自己的属性。事实表中存储业务流程中的定量数据；维度表中存储事实数据的描述性特征。事实数据，比如图中的：销售价格、数量、重量等。</p>
+<h3 id="星型模型的优点："><a href="#星型模型的优点：" class="headerlink" title="星型模型的优点："></a>星型模型的优点：</h3><ol>
+<li>关联查询比较简单，没有过于复杂的关联关系。</li>
+<li>由于一些维度表已经预先进行了合并，因此不需要过多的join操作，那么关联查询效率就会更高。</li>
+</ol>
+<h3 id="星型模型的缺点："><a href="#星型模型的缺点：" class="headerlink" title="星型模型的缺点："></a>星型模型的缺点：</h3><ol>
+<li>数据并不像3NF那样规范化。</li>
+<li>由于一些维度表已经预先进行了合并，就会造成数据的冗余存储，占用了更多的空间。</li>
+</ol>
+<h2 id="2-雪花模型"><a href="#2-雪花模型" class="headerlink" title="2. 雪花模型"></a>2. 雪花模型</h2><p>雪花模型可以认为是星型模型的变体。雪花模型在星型模型的基础上，对维度表进行了更规范化的拆分，就会促使某些维度表拆分出更细分的维度表。看下图：<br><img src="05.png" alt="alt"><br>图中就把Employee表拆分成了Employee和Department两张维度表，Department维度表可以提供一个部门更详细的信息，比如名字和位置。还有也把Customer维度表拆分成了Customer和City两张维度表，City维度表有关于一个城市的详细信息，比如城市名、邮政编码、所属省和国家。</p>
+<p>雪花模型和星型模型的主要区别在于，雪花模型的维度表是规范化存储的，减少了冗余。这样做的好处是易于维护和节省存储空间，缺点就是需要更多的连接来执行查询，性能较差。</p>
+<p>通常情况下，不建议使用雪花模型，因为它会增加维度模型的复杂度，可理解性差，而且需要连接更多的表来满足查询，性能低。</p>
+<p>最后总结一下雪花模型有哪些优缺点。</p>
+<h3 id="雪花模型的优点"><a href="#雪花模型的优点" class="headerlink" title="雪花模型的优点"></a>雪花模型的优点</h3><ol>
+<li>提供了规范化的数据，数据完整性高。</li>
+<li>由于数据时高度规范化的，因此占用的存储空间较小。</li>
+</ol>
+<h3 id="雪花模型的缺点"><a href="#雪花模型的缺点" class="headerlink" title="雪花模型的缺点"></a>雪花模型的缺点</h3><ol>
+<li>高度结构化的数据，在另一方面也增加了模型的复杂度。</li>
+<li>规范化的数据，在查询的时候会有更多的join连接，就会导致较差的性能。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>数据仓库</category>
+      </categories>
+      <tags>
+        <tag>数据仓库</tag>
+        <tag>维度模型</tag>
       </tags>
   </entry>
   <entry>
@@ -993,288 +1275,6 @@
       </categories>
       <tags>
         <tag>Spark性能优化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>YARN/Hadoop/HDFS常用命令</title>
-    <url>/2020/10/11/YARN-Hadoop-HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Vim编辑器常用操作</title>
-    <url>/2020/10/11/Vim%E7%BC%96%E8%BE%91%E5%99%A8%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>Vim常用命令</p>
-<a id="more"></a>
-
-<h1 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h1><ul>
-<li>快速移动到行首：^</li>
-<li>快速移动到行尾：$</li>
-<li>快速移动到文件第一行：连按两下g键</li>
-<li>快速移动到文件最后一行：shift+g组合键</li>
-</ul>
-<h1 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h1><ol>
-<li>非编辑模式下输入斜杠(/)，之后紧挨着输入要查找的内容</li>
-<li>按回车键定位到要查找的内容</li>
-<li>按n键查找下一个；shift+n键查找上一个</li>
-</ol>
-<h1 id="行号"><a href="#行号" class="headerlink" title="行号"></a>行号</h1><ul>
-<li><h2 id="显示行号"><a href="#显示行号" class="headerlink" title="显示行号"></a>显示行号</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>输入英文的冒号</li>
-<li>输入set number，然后按回车键即会显示行号</li>
-</ol>
-<ul>
-<li><h2 id="取消行号"><a href="#取消行号" class="headerlink" title="取消行号"></a>取消行号</h2></li>
-</ul>
-<ol>
-<li>非编辑模式下输入英文的冒号</li>
-<li>输入set nonumber，然后按回车键即会取消行号</li>
-</ol>
-<h1 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h1><ul>
-<li><h2 id="批量注释"><a href="#批量注释" class="headerlink" title="批量注释"></a>批量注释</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>键盘上下键移动到要注释文本的第一行</li>
-<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
-<li>键盘上下键移动到要注释文本的最后一行</li>
-<li>组合键shift + i 进入编辑模式</li>
-<li>输入注释符号(#或者//等)</li>
-<li>连续按两次ESC键，此时会看到选中的行被注释</li>
-</ol>
-<ul>
-<li><h2 id="批量取消注释"><a href="#批量取消注释" class="headerlink" title="批量取消注释"></a>批量取消注释</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>键盘上下键移动到要取消注释文本的第一行</li>
-<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
-<li>键盘上下键移动到要取消注释文本的最后一行</li>
-<li>按下键盘的d键，此时会看到选中的行被取消注释</li>
-</ol>
-]]></content>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Vim</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual C++ 14.0 is required</title>
-    <url>/2020/10/11/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual-C-14-0-is-required/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
-    <url>/2020/10/11/pymysql-DBUtils%E5%AE%9E%E7%8E%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%89%B9%E9%87%8F%E8%AF%BB%E5%86%99/</url>
-    <content><![CDATA[<h2 id="1-安装pymysql、DBUtils"><a href="#1-安装pymysql、DBUtils" class="headerlink" title="1. 安装pymysql、DBUtils"></a>1. 安装pymysql、DBUtils</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pymysql</span><br><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple DBUtils</span><br></pre></td></tr></table></figure>
-
-<a id="more"></a>
-
-<h2 id="2-创建连接池"><a href="#2-创建连接池" class="headerlink" title="2. 创建连接池"></a>2. 创建连接池</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">from</span> DBUtils.PooledDB <span class="keyword">import</span> PooledDB, PooledDBError</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_pool</span>():</span></span><br><span class="line">	pool = PooledDB(</span><br><span class="line">	    creator=pymysql,  <span class="comment"># 数据库连接对象</span></span><br><span class="line">	    host=<span class="string">&quot;host&quot;</span>,</span><br><span class="line">	    user=<span class="string">&quot;user&quot;</span>,</span><br><span class="line">	    password=<span class="string">&quot;password&quot;</span>,</span><br><span class="line">	    database=<span class="string">&quot;database&quot;</span>,</span><br><span class="line">	    charset=<span class="string">&quot;charset&quot;</span>,</span><br><span class="line">	    blocking=<span class="literal">True</span>,  <span class="comment"># 超过最大连接数时该如何处理后来的任务。设置为true就表示阻塞等待直达有空闲连接</span></span><br><span class="line">	    maxconnections=<span class="number">2</span>,  <span class="comment"># 连接池所能允许的最大连接数</span></span><br><span class="line">	    mincached=<span class="number">1</span>,  <span class="comment"># 最小初始化空闲连接数</span></span><br><span class="line">	    autocommit=<span class="literal">True</span>  <span class="comment"># 是否要自动提交</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">return</span> pool.connection()</span><br></pre></td></tr></table></figure>
-
-<h2 id="3-读数据"><a href="#3-读数据" class="headerlink" title="3. 读数据"></a>3. 读数据</h2><h3 id="1-只读一行"><a href="#1-只读一行" class="headerlink" title="1. 只读一行"></a>1. 只读一行</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fetch_one</span>(<span class="params">self, conn, sql</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line"></span><br><span class="line">        cursor.execute(sql)</span><br><span class="line">        <span class="keyword">return</span> cursor.fetchone()[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-批量读取"><a href="#2-批量读取" class="headerlink" title="2. 批量读取"></a>2. 批量读取</h3><p>批量读取的场景，如果要返回的数据量比较大，为了避免给数据库造成太大负载和占用过多带宽资源，可以选择分批读取数据。比如要读取10万条数据，每批只读2000条。</p>
-<p>思路：</p>
-<ol>
-<li>先通过一条SQL获取要读取的数据行数</li>
-<li>每读取一批之后，自增主键减去2000</li>
-</ol>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">sql_count = <span class="string">&quot;select id from db.table where id between 25000 and 125000&quot;</span></span><br><span class="line">sql = <span class="string">&quot;select col1, col2, col3 from db.table&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fetch_many</span>(<span class="params">self, conn, sql_count, sql, size</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 计算要读取的数据行数</span></span><br><span class="line">        cursor.execute(sql_count)</span><br><span class="line">        cursor.fetchall()</span><br><span class="line">        row_count = cursor.rowcount</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 分配读取数据</span></span><br><span class="line">        cursor.execute(sql)</span><br><span class="line">        <span class="keyword">while</span> row_count &gt; <span class="number">0</span>:</span><br><span class="line">            records = cursor.fetchmany(size)</span><br><span class="line">            row_count -= size</span><br><span class="line"></span><br><span class="line">            <span class="keyword">yield</span> records</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="4-写数据"><a href="#4-写数据" class="headerlink" title="4. 写数据"></a>4. 写数据</h2><p>如果可以，尽量进行批量写，因为executemany()方法在多行插入和更新的场景下提升写性能。否则，就等于是循环执行execute()方法一条条的写，性能较差。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">execute_many</span>(<span class="params">self, conn, sql, args</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 从连接池中获取一个连接</span></span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line">        cursor.executemany(sql, args)</span><br><span class="line">    <span class="keyword">except</span> PooledDBError <span class="keyword">as</span> e:</span><br><span class="line">        logger.error(<span class="string">&quot;Failed to insert records into MySQL table &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line">        cursor.close()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Python</tag>
-        <tag>连接池</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>pyspark中遇到的坑 (持续更新)</title>
-    <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
-    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
-<ul>
-<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
-<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
-<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
-<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
-<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
-</ul>
-<a id="more"></a>
-
-<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
-<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*)匹配了尽可能多的字符。</li>
-<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
-</ul>
-<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
-<li>分组2中，(\d+)就匹配了所有数字</li>
-</ul>
-]]></content>
-      <categories>
-        <category>正则表达式</category>
-      </categories>
-      <tags>
-        <tag>正则表达式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>单词统计WordCount (Scala/Python/Java)</title>
-    <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>手把手教你维度数据建模</title>
-    <url>/2020/10/11/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1/</url>
-    <content><![CDATA[<p>在这篇文章中，你将会学到如何一步步地进行维度数据建模，你将看到如何在真实的场景中使用维度模型。</p>
-<a id="more"></a>
-
-<h1 id="什么是维度数据建模"><a href="#什么是维度数据建模" class="headerlink" title="什么是维度数据建模"></a>什么是维度数据建模</h1><p>维度数据建模是在进行数仓设计时的一种数据建模方法。这种建模方法的主要目标是为了提高数据检索效率，对select查询操作进行了优化。维度数据建模最适合数仓星型模型和雪花模型。</p>
-<p>数仓中的维度数据建模不同于ER建模(Entity-Relationship Model，关系-实体模型)，ER建模的主要目标是通过减少数据的冗余来规范化数据， 而维度数据建模使得数据一旦存储在数仓中后，能被更容易地获取。维度模型是许多OLAP系统的底层数据模型。</p>
-<p>维度模型是被传奇人物Ralph Kimball提出的，你可以读读他的这本书<a href="https://www.amazon.in/Data-Warehouse-Toolkit-Complete-Dimensional/dp/8126544279/ref=as_li_ss_tl?ie=UTF8&keywords=kimball&qid=1470065827&ref_=sr_1_1&s=books&sr=1-1&linkCode=ll1&tag=dwgeecom-21&linkId=fa8b801a6414c3020dad1a1d29a429f6">The Data Warehouse Toolkit</a></p>
-<h1 id="维度数据建模的步骤"><a href="#维度数据建模的步骤" class="headerlink" title="维度数据建模的步骤"></a>维度数据建模的步骤</h1><p>接下来我们通过一个示例来了解维度数据建模的步骤。场景：您希望存储某个MedPlus商店每天销售多少片paracetamol 和 diclofenac 的信息。建模过程中，所有数据都归为两类：维度表和事实表。事实表中包含度量信息，维度表中包含限定度量的信息。</p>
-<p>下面是数据仓库维度建模示例的步骤：</p>
-<h2 id="第一步：选择业务目标"><a href="#第一步：选择业务目标" class="headerlink" title="第一步：选择业务目标"></a>第一步：选择业务目标</h2><p>在我们的例子中，业务目标就是存储单个商店每天paracetamol 和diclofenac 的销售数据。</p>
-<h2 id="第二步：确定粒度"><a href="#第二步：确定粒度" class="headerlink" title="第二步：确定粒度"></a>第二步：确定粒度</h2><p>粒度是表中存储的最低级别的信息。例如，如果表包含每日销售数据，则粒度为“每日”。</p>
-<p>在我们的例子中，假设一个特定的MedPlus商店在特定的一天销售1000片paracetamol ，那么粒度是每天，而在特定的月份销售10000片，那么粒度是每月。</p>
-<p>设定粒度信息是非常重要的，我们的例子采用的是“每日”的粒度。</p>
-<h2 id="第三步：确定维度和维度属性"><a href="#第三步：确定维度和维度属性" class="headerlink" title="第三步：确定维度和维度属性"></a>第三步：确定维度和维度属性</h2><p>在我们的例子中，可以确定三个维度：商店、药品(paracetamol 和diclofenac)和日期。下面是维度表的结构。<br><strong>Medicine</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | Paracetamol |<br>| 2 | Diclofenac |</p>
-<p><strong>Shop</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | shop1|<br>| 2 | shop2|<br>| 3 | shop3|</p>
-<p><strong>Day</strong><br>| SK | NAME |<br>|–| –|<br>| 1 | 2019-01-01|<br>| 2 | 2019-01-02|<br>| 3 | 2019-01-03|</p>
-<h2 id="第四步：确定事实表"><a href="#第四步：确定事实表" class="headerlink" title="第四步：确定事实表"></a>第四步：确定事实表</h2><p>事实表包含的是一些可度量的东西。例子中，药片的销售量就是一个度量，我们可以创建单独的事实表来存储这些度量。</p>
-<p>例子中，粒度是每天销售的药片，我将Medicine、Shop和Day这三张表的SK列添加到下面的事实表中。<br><img src="01.png" alt="alt"><br>在这个例子中，我们创建了3个维表和1个事实表，维度表通过外键连接到事实表上，这个模型看起来像个星型，也被称为<strong>星型模型</strong>。</p>
-<h1 id="维度建模的优势"><a href="#维度建模的优势" class="headerlink" title="维度建模的优势"></a>维度建模的优势</h1><ol>
-<li>提升了数据查询效率：通过冗余存储减少了关联查询</li>
-<li>简化了业务报表逻辑</li>
-<li>更容易理解：维度模型中的数据不是维度就是事实</li>
-<li>可扩展性：维度模型可以更新新的维度。</li>
-</ol>
-<h1 id="维度数据建模工具"><a href="#维度数据建模工具" class="headerlink" title="维度数据建模工具"></a>维度数据建模工具</h1><p>建议可以尝试被广泛使用的erwin数据模型工具。</p>
-]]></content>
-      <categories>
-        <category>数仓建模</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-        <tag>维度建模</tag>
-        <tag>星型模型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>数据仓库架构、维度数据建模、雪花模型和星型模型</title>
-    <url>/2020/10/11/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E6%9E%B6%E6%9E%84%E3%80%81%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1%E3%80%81%E9%9B%AA%E8%8A%B1%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%98%9F%E5%9E%8B%E6%A8%A1%E5%9E%8B/</url>
-    <content><![CDATA[<p>在GeeksforGeeks上看到了几篇关于数据仓库架构、维度数据建模的文章，进行翻译整理并加入了一些自己的理解，输出了这篇文章。</p>
-<a id="more"></a>
-
-<h1 id="一、数据仓库架构"><a href="#一、数据仓库架构" class="headerlink" title="一、数据仓库架构"></a>一、数据仓库架构</h1><p>数据仓库是将不同来源的数据在统一的模式下组织起来的异构集合。构建数据仓库有两种方法：自顶向下和自底向上。</p>
-<h2 id="1-自顶向下"><a href="#1-自顶向下" class="headerlink" title="1. 自顶向下"></a>1. 自顶向下</h2><p>自顶向下的架构如下图：<br><img src="01.png" alt="alt"><br>图中各主件的作用如下：</p>
-<ol>
-<li><p>External Sources<br>外部源是不管收集的数据是何种类型的数据源。数据可以是结构化的、半结构化的和非结构化的。结构化的数据，比如：关系型数据库中的表等；半结构化的数据，比如：Json串、XML文件等；非结构化的数据，比如：图片、音频、视频等。</p>
-</li>
-<li><p>Stage Area<br>由于从外部数据源抽取的数据没有特定的格式，因此需要对这些数据进行处理，以将其加载到数据仓库中。为此，建议使用ETL工具：</p>
-<p> <strong>E(Extracted)</strong>: 从外部数据源抽取数据。<br> <strong>T(Transform)</strong>: 将抽取的数据转换成标准格式。<br> <strong>L(Load):</strong> 将标准格式的数据加载进数据仓库。</p>
-<ol start="3">
-<li>Data-warehouse<br>在自顶向下的方法中，数据仓库存储最原始的数据。</li>
-<li>Data Marts<br>数据集市也是存储组件中的一部分。它存储由不同主题组织起来的数据。</li>
-<li>Data Mining<br>数据挖掘就是对数据仓库中的大量数据进行分析处理。利用数据挖掘算法找出数据仓库中隐藏的数据价值。</li>
-</ol>
-</li>
-</ol>
-<p>自顶向下的方法是被数据仓库之父Bill Inmon定义的——数据仓库作为公司的中央仓库，而数据集市从完整的数据仓库创建而来。</p>
-<h3 id="自顶向下的优点"><a href="#自顶向下的优点" class="headerlink" title="自顶向下的优点"></a>自顶向下的优点</h3><ol>
-<li>由于数据集市是从数据仓库创建而来，因此提供了数据集市的一致维度视图。</li>
-<li>这种模型可以很好的应对业务数据的变化。大公司会更喜欢采用这种方法。</li>
-<li>从数据仓库创建数据集市比较容易。</li>
-</ol>
-<h3 id="自顶向下的缺点"><a href="#自顶向下的缺点" class="headerlink" title="自顶向下的缺点"></a>自顶向下的缺点</h3><ol>
-<li>设计和维护的成本比较高。</li>
-</ol>
-<h2 id="2-自底向上"><a href="#2-自底向上" class="headerlink" title="2. 自底向上"></a>2. 自底向上</h2><p>自底向上架构如下图：<br><img src="02.png" alt="alt"><br>整个数据的流转过程：</p>
-<ol>
-<li>首先，数据会从外部数据源被抽取过来。</li>
-<li>数据经过ETL之后，不再进入数据仓库，而是被加载进数据集市。每个数据集市针对的是不同的业务主题，并且可以直接提供报表功能。</li>
-<li>将数据集市整合进数据仓库。</li>
-</ol>
-<p>自下而上的方法是Ralph Kimball(数据仓库和BI领域的权威专家)提出的——首先创建数据集市，并为分析提供单个业务视图，在创建完整的数据集市之后再创建数据仓库。</p>
-<h3 id="自底向上的优点"><a href="#自底向上的优点" class="headerlink" title="自底向上的优点"></a>自底向上的优点</h3><ol>
-<li>由于是先创建数据集市，所以会快速生成报表。</li>
-<li>数据仓库可以根据数据集市进行扩展。</li>
-<li>设计成本比较低。</li>
-</ol>
-<h3 id="自底向上的缺点"><a href="#自底向上的缺点" class="headerlink" title="自底向上的缺点"></a>自底向上的缺点</h3><ol>
-<li>由于维度视图的局限性，造成这种方法没有对数据的一个全局把控。</li>
-</ol>
-<h1 id="二、维度数据建模"><a href="#二、维度数据建模" class="headerlink" title="二、维度数据建模"></a>二、维度数据建模</h1><p>维度建模的概念是由Ralph Kimball提出的，是许多OLAP(Online Analytical Processing，联机分析处理)系统使用的数据模型。维度建模有两个比较常用的建模模型：<strong>星型模型</strong>和<strong>雪花模型</strong>，模型由<strong>事实表</strong>和<strong>维度表</strong>组成。</p>
-<p>维度建模步骤如下图：</p>
-<p><img src="03.png" alt="alt"></p>
-<ol>
-<li>Identifying the business objective<br>第一步就是确定业务对象，比如，销售(Sales)、人力资源(HR)、促销(Marketing)等。业务对象的选择直接影响着之后所用数据的质量，是数据建模中非常重要的一步。</li>
-<li>Identifying Granularity<br>确定要存储到表中的数据的粒度。<ol start="3">
-<li>Indentify Dimensions and ites Attributes<br>维度用来对数据仓库中的事实数据进行分类。比如，数据维度可能会是时间中的年、月、日，也可能是地域中的省、市、区县等等。</li>
-</ol>
-</li>
-<li>Indentifying the Fact<br>确认事实表，比如，商品价格、尺寸等。</li>
-<li>Building of Schema<br>构建模型，比较常用的模型有：星型模型和雪花模型。</li>
-</ol>
-<h1 id="三、星型模型和雪花模型"><a href="#三、星型模型和雪花模型" class="headerlink" title="三、星型模型和雪花模型"></a>三、星型模型和雪花模型</h1><h2 id="1-星型模型"><a href="#1-星型模型" class="headerlink" title="1. 星型模型"></a>1. 星型模型</h2><p>星型模型是数仓建模中较为常用的模型，它包含一个或多个事实表，以及连接到事实表上的维度表。星型模型相较于雪花模型在查询处理方面是更为高效的。</p>
-<p>星型模型之所以被称为星型，是因为它的物理模型就像是一个恒星的形状，中心是一个事实表，事实表上连着维度表。如下图：<br><img src="04.png" alt="alt"><br>在上图中，SALES就是一个事实表，其他的都是维度表，并各自都有属于自己的属性。事实表中存储业务流程中的定量数据；维度表中存储事实数据的描述性特征。事实数据，比如图中的：销售价格、数量、重量等。</p>
-<h3 id="星型模型的优点："><a href="#星型模型的优点：" class="headerlink" title="星型模型的优点："></a>星型模型的优点：</h3><ol>
-<li>关联查询比较简单，没有过于复杂的关联关系。</li>
-<li>由于一些维度表已经预先进行了合并，因此不需要过多的join操作，那么关联查询效率就会更高。</li>
-</ol>
-<h3 id="星型模型的缺点："><a href="#星型模型的缺点：" class="headerlink" title="星型模型的缺点："></a>星型模型的缺点：</h3><ol>
-<li>数据并不像3NF那样规范化。</li>
-<li>由于一些维度表已经预先进行了合并，就会造成数据的冗余存储，占用了更多的空间。</li>
-</ol>
-<h2 id="2-雪花模型"><a href="#2-雪花模型" class="headerlink" title="2. 雪花模型"></a>2. 雪花模型</h2><p>雪花模型可以认为是星型模型的变体。雪花模型在星型模型的基础上，对维度表进行了更规范化的拆分，就会促使某些维度表拆分出更细分的维度表。看下图：<br><img src="05.png" alt="alt"><br>图中就把Employee表拆分成了Employee和Department两张维度表，Department维度表可以提供一个部门更详细的信息，比如名字和位置。还有也把Customer维度表拆分成了Customer和City两张维度表，City维度表有关于一个城市的详细信息，比如城市名、邮政编码、所属省和国家。</p>
-<p>雪花模型和星型模型的主要区别在于，雪花模型的维度表是规范化存储的，减少了冗余。这样做的好处是易于维护和节省存储空间，缺点就是需要更多的连接来执行查询，性能较差。</p>
-<p>通常情况下，不建议使用雪花模型，因为它会增加维度模型的复杂度，可理解性差，而且需要连接更多的表来满足查询，性能低。</p>
-<p>最后总结一下雪花模型有哪些优缺点。</p>
-<h3 id="雪花模型的优点"><a href="#雪花模型的优点" class="headerlink" title="雪花模型的优点"></a>雪花模型的优点</h3><ol>
-<li>提供了规范化的数据，数据完整性高。</li>
-<li>由于数据时高度规范化的，因此占用的存储空间较小。</li>
-</ol>
-<h3 id="雪花模型的缺点"><a href="#雪花模型的缺点" class="headerlink" title="雪花模型的缺点"></a>雪花模型的缺点</h3><ol>
-<li>高度结构化的数据，在另一方面也增加了模型的复杂度。</li>
-<li>规范化的数据，在查询的时候会有更多的join连接，就会导致较差的性能。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>数据仓库</category>
-      </categories>
-      <tags>
-        <tag>数据仓库</tag>
-        <tag>维度模型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
-    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Spark</tag>
       </tags>
   </entry>
 </search>
