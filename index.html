@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="专注于大数据领域">
+<meta property="og:type" content="website">
+<meta property="og:title" content="aof的博客">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="aof的博客">
+<meta property="og:description" content="专注于大数据领域">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="aof">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>aof的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">aof的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="aof">
+      <meta itemprop="description" content="专注于大数据领域">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="aof的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">Spark中一行代码转化DataFrame所有列的类型</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-10 23:26:15 / 修改时间：23:28:39" itemprop="dateCreated datePublished" datetime="2020-10-10T23:26:15+08:00">2020-10-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
+<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
+<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
+</ul>
+<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
+<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
+<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
+<ol>
+<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
+<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/10/MySQ%E8%A1%8C%E8%AE%B0%E5%BD%95%E5%A4%A7%E5%B0%8F%E8%B6%85%E8%BF%87%E9%99%90%E5%88%B6-Row-size-too-large-%EF%BC%9E-8126-Changing-some-columns-to-TEXT-or-BLOB-or/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="aof">
+      <meta itemprop="description" content="专注于大数据领域">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="aof的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/10/MySQ%E8%A1%8C%E8%AE%B0%E5%BD%95%E5%A4%A7%E5%B0%8F%E8%B6%85%E8%BF%87%E9%99%90%E5%88%B6-Row-size-too-large-%EF%BC%9E-8126-Changing-some-columns-to-TEXT-or-BLOB-or/" class="post-title-link" itemprop="url">MySQ行记录大小超过限制(Row size too large (＞ 8126). Changing some columns to TEXT or BLOB or ......)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-10 20:37:47 / 修改时间：23:28:50" itemprop="dateCreated datePublished" datetime="2020-10-10T20:37:47+08:00">2020-10-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>问题出现在Spark写MySQL的场景：要写入MySQL的DataFrame中有90多个列，其中有10多个列为字符串类型，且长度较长(大于1000)；对应的要写入的MySQL表使用的是InnoDB引擎，这些较大的字符串所对应的列在MySQL中设置为text类型。</p>
+<p>最终在写MySQL的时候，出现这样的报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Caused by: com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: <span class="function">Row size too <span class="title">large</span> <span class="params">(&gt; <span class="number">8126</span>)</span>. Changing some columns to TEXT or BLOB or using ROW_FORMAT</span>=DYNAMIC or ROW_FORMAT=COMPRESSED may help. In current row format, BLOB prefix of <span class="number">768</span> bytes is stored inline.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="MySQL版本"><a href="#MySQL版本" class="headerlink" title="MySQL版本"></a>MySQL版本</h1><p>本人使用的MySQL版本为5.6、InnoDB引擎，以下内容也是以这个前提来展开的，MyISAM暂不做介绍。</p>
+<p>注：</p>
+<ul>
+<li>MySQL 5.6版本默认InnoDB文件格式为Antelope，相应配置innodb_file_format=Antelope，此种文件格式不支持COMPRESSED和DYNAMIC的行格式。</li>
+<li>MySQL 5.7版本默认InnoDB文件格式为Barracuda，相应配置innodb_file_format=Barracuda，此种文件格式支持COMPRESSED和DYNAMIC的行格式。</li>
+</ul>
+<h1 id="名词术语"><a href="#名词术语" class="headerlink" title="名词术语"></a>名词术语</h1><p>要理解上面报错的本质，首先要了解以下概念：</p>
+<ol>
+<li>MySQL中的可变长度类型</li>
+<li>页(page)、页大小(page size)、off-page column、overflow page？</li>
+<li>页（Page）、行大小、行格式三种之间的关系</li>
+</ol>
+<h2 id="1-可变长度类型"><a href="#1-可变长度类型" class="headerlink" title="1. 可变长度类型"></a>1. 可变长度类型</h2><p>MySQL中的可变长度类型：VARCHAR、VARBINARY、BLOB和TEXT类型。</p>
+<p>InnoDB将长度大于等于768字节的fixed-length字段当作可变长度字段，可以存储在off-page。</p>
+<h2 id="2-页-page-、页大小-Page-size-、off-page-column、overflow-page"><a href="#2-页-page-、页大小-Page-size-、off-page-column、overflow-page" class="headerlink" title="2. 页(page)、页大小(Page size)、off-page column、overflow page"></a>2. 页(page)、页大小(Page size)、off-page column、overflow page</h2><h3 id="i-页-Page"><a href="#i-页-Page" class="headerlink" title="i. 页(Page)"></a>i. 页(Page)</h3><p>page代表InnoDB每次在磁盘和内存之间传输多少数据的一个单元。一个page可以包含一行或多行数据，这主要取决于每行数据的大小。如果一行记录不能全部放入到一个page中，InnoDB会用一个指针来引用这行数据。</p>
+<p>可以使用COMPRESSED格式来使每个page容纳更多的数据。对于blob或者text类型的字段，COMPACT格式允许大长度的列和其他列分开存储，以便减少查询时的I/O负载和内存占用。</p>
+<p>当InnoDB以批处理的方式读写一组page以增加I/O吞吐量时，它会一次读写一个区段的page。</p>
+<h3 id="ii-页大小-Page-size"><a href="#ii-页大小-Page-size" class="headerlink" title="ii. 页大小(Page size)"></a>ii. 页大小(Page size)</h3><p>在MySQL 5.6版本之前，每个InnoDB page的大小都是固定的16KB，这是一个各方面取舍平衡的值：16KB能足以容纳大多数的行数据，同时也足够小到可以最小化将不必要的数据传输到内存的性能开销。</p>
+<p>从MySQL 5.6开始，InnoDB page的大小可以是4KB、8KB或16KB，可通过innodb_page_size配置进行设置。在MySQL5.7.6中，InnoDB支持更大的page size(32KB和64KB)，但是这两种page size并不支持ROW_FORMAT=COMPRESSED， 并且最大记录大小为16KB。</p>
+<h3 id="iii-off-page-column"><a href="#iii-off-page-column" class="headerlink" title="iii. off-page column"></a>iii. off-page column</h3><p>一个可变长度列(比如BLOB和VARCHAR)中的数据因为太大而不能放入一个B-tree page中，那么数据就会存储在overflow pages中。</p>
+<h3 id="iiii-overflow-page"><a href="#iiii-overflow-page" class="headerlink" title="iiii. overflow page"></a>iiii. overflow page</h3><p>专门分配的磁盘pages，用来存储那些因为数据太长而不能放入B-tree page的可变长度列，这些可变长度列就是上面提到的off-page column。</p>
+<h2 id="3-行格式"><a href="#3-行格式" class="headerlink" title="3. 行格式"></a>3. 行格式</h2><p>表的行格式决定了表中行是如何在物理层面上被存储的，这反过来又会影响增删查改操作的性能。当越多的行能被存储在单个page中时，那查询操作和索引的查找都会更高效，buffer pool就需要越少的缓存，更新操作就需要越少的I/O。</p>
+<p>每个表中的数据都是被划分为很多个page的，这些page都是保存在B-tree这种数据结构中的，表中的数据和二级索引都是使用的这种数据结构。</p>
+<p>长度较长的可变长度列由于无法存储到单个B-tree page中，只能存储到单独分配的磁盘页(overflow pagess)上。这些列也被称为off-page column。off-page columns的值存储在overflow pages的单链表中，而且每一列都有自己的列表，从这个列表中可以知道这一列的值都存储在哪些overflow page中。根据列长度的不同，会将变长列的全部值或前缀存储在B-tree中，这样就能避免page的浪费，也避免了要读取多个page的情况。</p>
+<p>MySQL中常用的InnoDB引擎支持4中行格式：</p>
+<ol>
+<li>REDUNDANT</li>
+<li>COMPACT </li>
+<li>DYNAMIC</li>
+<li>COMPRESSED</li>
+</ol>
+<p>更多关于InnoDB Row Formats的细节，参考<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-row-format.html">这里</a>。</p>
+<h2 id="4-页（Page）、行大小、行格式三种之间的关系"><a href="#4-页（Page）、行大小、行格式三种之间的关系" class="headerlink" title="4. 页（Page）、行大小、行格式三种之间的关系"></a>4. 页（Page）、行大小、行格式三种之间的关系</h2><p>MySQL表中行的最大长度被限制为65535字节，即使使用的存储引擎能够支持更大的行，也不能超过这个限制。</p>
+<p>表中行的最大长度略少于数据库page大小的一半，例如，对于默认的InnoDB page大小16KB，所对应的行最大长度为略小于8KB，这个值是通过配置项innodb_page_size来设定的。</p>
+<p>如果表中一行没有超过半个page的限制，那么整行数据都是存储在page中的；如果超过了半个page大小，那么对于可变长度列，超过限制的数据会被存储在外部off-page storage(就是上面提到的overflow page)。</p>
+<p>而可变长度列是如何存储在off-page storage中的，又跟行格式的不同而不同：</p>
+<ul>
+<li>COMPACT 和 REDUNDANT行格式<br>在使用这两种行格式的情况下，当一个可变长度列被存储到外部的off-page storage中时，InnoDB引擎会把这一列的前768个字节存储在page中，剩下的数据存储在overflow pages中。每一个存储在overflow pages中的可变长度列都有一个自己的overflow pages列表。这768个字节中，有20字节用来存储这个列的真实长度和指向包含指向overflow list的指针。</li>
+<li>DYNAMIC和COMPRESSED行格式<br>在使用这两种行格式的情况下，当一个可变长度列被存储到外部的off-page storage中时，InnoDB引擎会在page中存储一个20字节的指针，列中的剩余数据会全部存储到overflow pages中。</li>
+</ul>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>在使用InnoDB建表时，默认的行格式为COMPACT（可通过show variables like “table_name”查看），这种行格式对应的默认page大小为16KB，那么相应每行的大小不能超过8KB。如果表中有20个列都为text类型，而且每个text类型列的值都超过了768字节，那么20 * 768字节=15360字节=15KB远大于8KB，所以必然会报错！<br>那么解决这个问题的方法就是修改行格式，以下是启用DYNAMIC行格式的步骤：</p>
+<ol>
+<li><p>首先是MySQL配置文件my.cnf中添加两个配置项：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">innodb_file_per_table=1 //</span><br><span class="line">innodb_file_format = Barracuda //DYNAMIC行格式只有在Barracuda文件格式下才支持</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改表行格式ROW_FORMAT</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> table_name ROW_FORMAT=DYNAMIC;</span><br></pre></td></tr></table></figure>
+<p>修改之后，执行 show table status like ‘table_name’，可以看到Row_format这一列对应的值已经变成了dynamic，再写入数据的时候就不会报错了。</p>
+</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/mysql-reslimits-excerpt/5.7/en/column-count-limit.html">https://dev.mysql.com/doc/mysql-reslimits-excerpt/5.7/en/column-count-limit.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-row-format.html">https://dev.mysql.com/doc/refman/5.7/en/innodb-row-format.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/glossary.html#glos_dynamic_row_format">https://dev.mysql.com/doc/refman/5.7/en/glossary.html#glos_dynamic_row_format</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">aof</p>
+  <div class="site-description" itemprop="description">专注于大数据领域</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">aof</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+    </div>
+</body>
+</html>
