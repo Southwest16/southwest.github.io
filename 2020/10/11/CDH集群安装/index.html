@@ -20,17 +20,27 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="专注于大数据领域">
+  <meta name="description" content="在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CDH集群安装">
 <meta property="og:url" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/index.html">
 <meta property="og:site_name" content="aof的博客">
-<meta property="og:description" content="专注于大数据领域">
+<meta property="og:description" content="在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-10-11T05:33:56.000Z">
-<meta property="article:modified_time" content="2020-10-11T05:33:56.250Z">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/01.png">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/02.png">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/03.png">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/04.png">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/05.png">
+<meta property="og:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/06.png">
+<meta property="article:published_time" content="2020-10-11T06:59:22.000Z">
+<meta property="article:modified_time" content="2020-10-11T07:02:27.564Z">
 <meta property="article:author" content="aof">
+<meta property="article:tag" content="Cloudera">
+<meta property="article:tag" content="CDH">
+<meta property="article:tag" content="集群安装部署">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/01.png">
 
 <link rel="canonical" href="http://example.com/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/">
 
@@ -215,8 +225,18 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-10-11 13:33:56" itemprop="dateCreated datePublished" datetime="2020-10-11T13:33:56+08:00">2020-10-11</time>
+              <time title="创建时间：2020-10-11 14:59:22 / 修改时间：15:02:27" itemprop="dateCreated datePublished" datetime="2020-10-11T14:59:22+08:00">2020-10-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CDH/" itemprop="url" rel="index"><span itemprop="name">CDH</span></a>
+                </span>
             </span>
 
           
@@ -228,7 +248,7 @@
               <span id="busuanzi_value_page_pv"></span>
             </span>
             <span class="post-meta-divider">|</span>
-            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 0</span>
+            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 1.8k</span>
 
         </div>
       </header>
@@ -239,7 +259,116 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <p>在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。</p>
+<a id="more"></a>
+
+<p>下面针对自己在公司安装CDH集群的经历，整理了以下安装步骤，希望能对有需要的同学有所帮助！</p>
+<p><font color=red>注：以下步骤中，从第1步到第8步，除了元数据库的安装之外，其他步骤都是要在集群所有节点上执行的！</font></p>
+<h1 id="1-配置主机名"><a href="#1-配置主机名" class="headerlink" title="1. 配置主机名"></a>1. 配置主机名</h1><p>在文件/etc/hosts的最后加入以下配置(集群所有节点都需要配置)<br>10.1.12.61bigdatadev01<br>10.1.12.62bigdatadev02<br>10.1.12.63bigdatadev03<br>10.1.12.64bigdatadev04<br>10.1.12.65bigdatadev05</p>
+<p>依次修改每个节点文件/etc/hostname中的主机名为bigdata01，bigdata02…修改完之后需要重启主机reboot，才能生效。</p>
+<h1 id="2-时间同步"><a href="#2-时间同步" class="headerlink" title="2. 时间同步"></a>2. 时间同步</h1><p>使用chrony与外网进行时间同步，不需要配置从节点向主节点同步。</p>
+<ol>
+<li>安装chrony服务：yum -y install chrony</li>
+<li>启动服务：systemctl start chronyd</li>
+<li>查看状态：systemctl status chronyd</li>
+<li>设置开机启动：systemctl enable chronyd</li>
+</ol>
+<h1 id="3-ssh免密登录"><a href="#3-ssh免密登录" class="headerlink" title="3. ssh免密登录"></a>3. ssh免密登录</h1><ol>
+<li><p>在集群各节点上产生公钥和私钥<br>ssh-keygen -t rsa<br>注：ssh-keygen为ssh生成、管理和转换认证密钥, 它支持RSA和DSA两种认证密钥。-t选项: 指定要创建的密钥类型。</p>
+</li>
+<li><p>拷贝被访问节点的公钥到访问节点<br>拷贝主节点的公钥到所有节点，需要主节点能访问所有节点包括主节点本身。<br>ssh-copy-id master</p>
+<p>命令格式：ssh-copy-id [ -i [identity_file] ] [user@]machine<br>ssh-copy-id是把本地主机的公钥复制到远程主机的authorized_keys文件上, 也会给远程主机的用户主目录(home)和~/.ssh和~/.ssh/authorized_keys设置合适的权限。-i选项用来把本地的ssh公钥文件安装到远程主机对应账户下。<br>例如：ssh-copy-id user@server 或 ssh-copy-id -i ~/.ssh/id_rsa.pub user@server</p>
+</li>
+</ol>
+<h1 id="4-关闭防火墙"><a href="#4-关闭防火墙" class="headerlink" title="4. 关闭防火墙"></a>4. 关闭防火墙</h1><ol>
+<li>查看防火墙服务状态: systemctl status firewalld</li>
+<li>关闭防火墙: systemctl stop firewalld</li>
+<li>禁止开机启动：systemctl disable firewalld</li>
+</ol>
+<h1 id="5-禁用SELinux"><a href="#5-禁用SELinux" class="headerlink" title="5. 禁用SELinux"></a>5. 禁用SELinux</h1><ol>
+<li>查看SElLinux状态: sestatus -v 或 getenforce</li>
+<li>永久关闭SELinux：<ol>
+<li>编辑vi /etc/selinux/config</li>
+<li>修改SELINUX=disabled</li>
+<li>重启主机</li>
+</ol>
+</li>
+</ol>
+<h1 id="6-安装Java环境"><a href="#6-安装Java环境" class="headerlink" title="6. 安装Java环境"></a>6. 安装Java环境</h1><p>查看是否安装了jdk：rpm -qa | grep jdk<br>如果没安装，则通过rpm安装JDK：rpm -ivh jdk-8u172-linux-x64.rpm </p>
+<h1 id="7-元数据库安装"><a href="#7-元数据库安装" class="headerlink" title="7. 元数据库安装"></a>7. 元数据库安装</h1><h2 id="卸载mariadb"><a href="#卸载mariadb" class="headerlink" title="卸载mariadb"></a>卸载mariadb</h2><p>centos默认安装mariadb，需要先卸载以避免冲突。</p>
+<ol>
+<li>查看已安装MariaDB相关包<br>rpm -qa | grep -i mariadb</li>
+<li>查看已安装的MariaDB相关yum包，包需要根据rpm命令的结果判断<br>yum list mariadb-libs</li>
+<li>移除已安装的MariaDB相关的yum包，包名需根据yum list命令结果判断<br>yum remove mariadb-libs</li>
+</ol>
+<h2 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h2><ol>
+<li><p>下载MySQL rpm包<br>官网下载地址：<a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/mysql/5.7.html#downloads">https://dev.mysql.com/downloads/mysql/5.7.html#downloads</a></p>
+</li>
+<li><p>依次执行以下命令(包之间有前后依赖关系，务必按以下顺序安装)<br> rpm -ivh mysql-community-common-5.7.17-1.el7.x86_64.rpm<br> rpm -ivh mysql-community-libs-5.7.17-1.el7.x86_64.rpm<br> rpm -ivh mysql-community-client-5.7.17-1.el7.x86_64.rpm<br> rpm -ivh mysql-community-server-5.7.17-1.el7.x86_64.rpm</p>
+<p> 如果执行上面第四个命令报错，执行如下命令：</p>
+<ol>
+<li>yum -y install perl</li>
+<li>下载libaio rpm包：<a target="_blank" rel="noopener" href="http://mirror.centos.org/centos/6/os/x86_64/Packages/libaio-0.3.107-10.el6.x86_64.rpm">http://mirror.centos.org/centos/6/os/x86_64/Packages/libaio-0.3.107-10.el6.x86_64.rpm</a></li>
+<li>rpm -ivh libaio-0.3.107-10.el6.x86_64.rpm</li>
+<li>yum -y install net-tools</li>
+</ol>
+</li>
+<li><p>数据库初始化</p>
+<ol>
+<li><p>执行mysqld –initialize –user=mysql初始化，之后会在/var/log/mysqld.log中生成一个root账号密码</p>
+</li>
+<li><p>启动数据库 systemctl start mysqld，并设置mysql开机自启动 systemctl enable mysqld</p>
+</li>
+<li><p>登录 mysql -uroot -p</p>
+</li>
+<li><p>设置密码 alter user ‘root’@’localhost’ identified by ‘yourpasswd’;</p>
+</li>
+<li><p>创建集群组件所必须的元数据库，并给每个数据库设置用户名和密码<br> create database hive    default charset utf8 collate utf8_general_ci;<br> create database oozie  default charset utf8 collate utf8_general_ci;<br> create database hue    default charset utf8 collate utf8_general_ci;<br> create database amon default charset utf8 collate utf8_general_ci;</p>
+<p> grant all on hive.* ‘hive’@’%’ identified by ‘123456’;<br> grant all on oozie .* ‘oozie ‘@’%’ identified by ‘123456’;<br> grant all on hue .* ‘hue ‘@’%’ identified by ‘123456’;<br> grant all on amon .* ‘amon ‘@’%’ identified by ‘123456’;</p>
+</li>
+<li><p>修改 /etc/my.cnf<br> my.cnf中配置参考<a target="_blank" rel="noopener" href="https://www.cloudera.com/documentation/enterprise/5-15-x/topics/cm_ig_mysql.html#cmig_topic_5_5">https://www.cloudera.com/documentation/enterprise/5-15-x/topics/cm_ig_mysql.html#cmig_topic_5_5</a>中步骤4。</p>
+</li>
+</ol>
+</li>
+</ol>
+<h1 id="8-安装-Cloudera-Manager"><a href="#8-安装-Cloudera-Manager" class="headerlink" title="8. 安装 Cloudera Manager"></a>8. 安装 Cloudera Manager</h1><ol>
+<li><p>下载cloudera manger和CDH<br> 下载<a target="_blank" rel="noopener" href="https://archive.cloudera.com/cm5/cm/5/">https://archive.cloudera.com/cm5/cm/5/</a>，版本选择 cloudera-manager-centos7-cm5.15.0_x86_64.tar.gz。</p>
+<p> 下载<a target="_blank" rel="noopener" href="https://archive.cloudera.com/cdh5/parcels/5.15.0/">https://archive.cloudera.com/cdh5/parcels/5.15.0/</a>，版本选择CDH-5.15.0-1.cdh5.15.0.p0.21-el7.parcel 和 CDH-5.15.0-1.cdh5.15.0.p0.21-el7.parcel.sha1</p>
+</li>
+<li><p>解压压缩包，并进行必要的配置</p>
+<ol>
+<li>将步骤1中下载的CM压缩包copy到/opt目录下；</li>
+<li>解压 tar -zxvf cloudera-manager-centos7-cm5.15.0_x86_64.tar.gz；</li>
+<li>配置CM server的主机名：vi cm-5.15.0/etc/cloudera-scm-agent/config.ini ；</li>
+<li>在所有节点上创建用户，执行 useradd –system –home-dir /opt/cm-5.15.0/run/cloudera-scm-server/ </li>
+</ol>
+</li>
+</ol>
+<p>–no-create-home –shell=/bin/false –comment “Cloudera SCM User” cloudera-scm；<br>    5. 将mysql数据库驱动 mysql-connector-java-5.1.42-bin.jar 上传到所有节点的/opt/cm-5.15.0/share/cmf/lib/ 目录下；<br>    6. 为CM创建数据库 /opt/cm-5.15.0/share/cmf/schema/scm_prepare_database.sh  mysql -uroot<br>-pyourpasswd  scm yourscm（yourpasswd是新用户yourscm的密码）</p>
+<h1 id="9-启动CM相关服务"><a href="#9-启动CM相关服务" class="headerlink" title="9. 启动CM相关服务"></a>9. 启动CM相关服务</h1><ol>
+<li>集群主节点上启动Cloudera server： /opt/cm-5.15.0/etc/init.d/cloudera-scm-server start；</li>
+<li>所有节点启动Cloudera agent：/opt/cm-5.15.0/etc/init.d/cloudera-scm-agent start；</li>
+</ol>
+<h1 id="10-Web端操作"><a href="#10-Web端操作" class="headerlink" title="10. Web端操作"></a>10. Web端操作</h1><ol>
+<li><p>如果之前操作没出现异常，那么在浏览器中访问 hostname:7180（默认用户名密码都为admin）就会出现以下界面：<br><img src="01.png" alt="alt"></p>
+</li>
+<li><p>使用默认账户密码登录，之后出现如下界面：<br><img src="02.png" alt="alt"><br>选择免费的那个版本即可，当然也可以购买使用Cloudera提供的高级功能。</p>
+</li>
+<li><p>选好版本之后，点继续，出现以下界面：<br><img src="03.png" alt="alt"><br>将你配置的所有节点都勾选上，然后继续。</p>
+</li>
+<li><p>选择CDH版本<br><img src="04.png" alt="alt"></p>
+</li>
+<li><p>集群组件配置<br><img src="05.png" alt="alt"><br><img src="06.png" alt="alt"><br>因为有些组件是没必要在所有节点上都安装的，建议将组件均衡的安装到集群节点上，而不是集中在某几个节点上，否则可能会造成某些节点资源占用过多。</p>
+</li>
+<li><p>安装组件<br>选择好要安装的组件，点下一步，就会依次安装这些组件。如果安装过程中没出什么问题，那就大功告成了！<br>这里贴出本人在安装过程中遇到的问题：</p>
+<ol>
+<li>在测试Hive、Ooozie、Hue等的数据库连接时，Hue报错 Unexpected error. Unable to verify database connection<br>解决：选择把Hue安装在MySQL所安装的主机上，并安装以下包：<br>rpm -ivh mysql-community-libs-compat-5.7.20-1.el7.x86_64.rpm<br>yum install python-lxml</li>
+<li>安装在过程中出现 java.lang.ClassNotFoundException: com.mysql.jdbc.Driver<br>将mysql驱动包<a target="_blank" rel="noopener" href="https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.42/mysql-connector-java-5.1.42.jar">mysql-connector-java-5.1.42.jar</a>拷贝到以下目录：<br>/opt/cloudera/parcels/CDH-5.15.0-1.cdh5.15.0.p0.21/lib/hive/lib<br>/opt/cloudera/parcels/CDH-5.15.0-1.cdh5.15.0.p0.21/lib/oozie/lib<br>/opt/cloudera/parcels/CDH-5.15.0-1.cdh5.15.0.p0.21/lib/oozie/libext </li>
+<li>Cloudera Manager Web界面出现 Hue Load Balancer 运行状况不良<br>yum -y install httpd<br>yum -y install mod_ssl</li>
+</ol>
+</li>
+</ol>
+
     </div>
 
     
@@ -247,6 +376,11 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Cloudera/" rel="tag"># Cloudera</a>
+              <a href="/tags/CDH/" rel="tag"># CDH</a>
+              <a href="/tags/%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" rel="tag"># 集群安装部署</a>
+          </div>
 
         
 
@@ -254,12 +388,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/10/11/15%E5%88%86%E9%92%9F%E6%90%9E%E5%AE%9A-Spark%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/" rel="prev" title="15分钟搞定 Spark集群安装">
-      <i class="fa fa-chevron-left"></i> 15分钟搞定 Spark集群安装
+    <a href="/2020/10/11/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1/" rel="prev" title="手把手教你维度数据建模">
+      <i class="fa fa-chevron-left"></i> 手把手教你维度数据建模
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/" rel="next" title="Hive/Spark SQL常用函数(窗口分析函数、行列转换、JSON处理)">
-      Hive/Spark SQL常用函数(窗口分析函数、行列转换、JSON处理) <i class="fa fa-chevron-right"></i>
+    <a href="/2020/10/11/Hive-Spark-SQL%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0-%E7%AA%97%E5%8F%A3%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0%E3%80%81%E8%A1%8C%E5%88%97%E8%BD%AC%E6%8D%A2%E3%80%81JSON%E5%A4%84%E7%90%86/" rel="next" title="Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理">
+      Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -319,6 +453,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AE%E4%B8%BB%E6%9C%BA%E5%90%8D"><span class="nav-number">1.</span> <span class="nav-text">1. 配置主机名</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5"><span class="nav-number">2.</span> <span class="nav-text">2. 时间同步</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">3. ssh免密登录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%85%B3%E9%97%AD%E9%98%B2%E7%81%AB%E5%A2%99"><span class="nav-number">4.</span> <span class="nav-text">4. 关闭防火墙</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E7%A6%81%E7%94%A8SELinux"><span class="nav-number">5.</span> <span class="nav-text">5. 禁用SELinux</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%AE%89%E8%A3%85Java%E7%8E%AF%E5%A2%83"><span class="nav-number">6.</span> <span class="nav-text">6. 安装Java环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%83%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%89%E8%A3%85"><span class="nav-number">7.</span> <span class="nav-text">7. 元数据库安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%B8%E8%BD%BDmariadb"><span class="nav-number">7.1.</span> <span class="nav-text">卸载mariadb</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85MySQL"><span class="nav-number">7.2.</span> <span class="nav-text">安装MySQL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E5%AE%89%E8%A3%85-Cloudera-Manager"><span class="nav-number">8.</span> <span class="nav-text">8. 安装 Cloudera Manager</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%90%AF%E5%8A%A8CM%E7%9B%B8%E5%85%B3%E6%9C%8D%E5%8A%A1"><span class="nav-number">9.</span> <span class="nav-text">9. 启动CM相关服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-Web%E7%AB%AF%E6%93%8D%E4%BD%9C"><span class="nav-number">10.</span> <span class="nav-text">10. Web端操作</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -339,13 +474,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -403,7 +538,7 @@
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">全站共 8.7k 字</span>
+  <span class="post-count">全站共 13.1k 字</span>
 </div>
 
         
