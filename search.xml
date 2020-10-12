@@ -340,37 +340,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>JSON数据转成Spark Dataset/DataFrame</title>
-    <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
-    <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
-<a id="more"></a>
-
-<p>接下来我们就看看该如何将各种格式的JSON数据转成DataFrame。</p>
-<h2 id="1-读取JSON文件"><a href="#1-读取JSON文件" class="headerlink" title="1. 读取JSON文件"></a>1. 读取JSON文件</h2><p>读取指定路径下的json文件（或者存放json文件的目录），加载为DataFrame。</p>
-<h6 id="本地文件"><a href="#本地文件" class="headerlink" title="本地文件"></a>本地文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//本地路径</span></span><br><span class="line">val path = <span class="string">&quot;file:/opt/package/jar/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
-<h6 id="HDFS文件"><a href="#HDFS文件" class="headerlink" title="HDFS文件"></a>HDFS文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//HDFS路径</span></span><br><span class="line">val path = <span class="string">&quot;/file/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-List、Seq"><a href="#2-List、Seq" class="headerlink" title="2. List、Seq"></a>2. List、Seq</h2><p>将一个List或Seq加载为DataFrame。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line">val ds = spark.createDataset(<span class="string">&quot;&quot;</span><span class="string">&quot;[&#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Spark<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 10&#125;, &#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Flink<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 5&#125;]&quot;</span><span class="string">&quot;&quot;</span> :: Nil)</span><br><span class="line">spark.read</span><br><span class="line">	<span class="comment">//默认的timestampFormat为 yyyy-MM-dd&#x27;T&#x27;HH:mm:ss.SSSXXX, SSS为毫秒数, XXX为非法字符(会报错&quot;java.lang.IllegalArgumentException: Illegal pattern component: XXX&quot;),</span></span><br><span class="line">	<span class="comment">//需要手动设置时区为Z(即UTC时间)</span></span><br><span class="line">	.option(<span class="string">&quot;timestampFormat&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm:ss.SSSZ&quot;</span>)</span><br><span class="line">	.json(ds)</span><br><span class="line">	.show()</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="3-JSON-String类型的Column"><a href="#3-JSON-String类型的Column" class="headerlink" title="3. JSON String类型的Column"></a>3. JSON String类型的Column</h2><p>JSON String类型的Column, 拿Hive来举例的话，就是Hive表中的某一列，其类型为String，其值是JSONArray类型（”[{‘name’: ‘Spark’, ‘age’: 10}, {‘name’: ‘Flink’, ‘age’: 5}]”），或者是JSONObject类型（”{‘name’: ‘Spark’, ‘age’: 10}”）。</p>
-<p>这种情况可以用以下两种方式处理：</p>
-<h6 id="方式一-map函数处理"><a href="#方式一-map函数处理" class="headerlink" title="方式一(map函数处理)"></a>方式一(map函数处理)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//JSON string类型的Dataset转成DataFrame</span></span><br><span class="line">val ds = df.map(row =&gt; JSON.parseArray(row.toString).get(<span class="number">0</span>).toString) </span><br><span class="line"></span><br><span class="line">ds.show()</span><br></pre></td></tr></table></figure>
-
-<h6 id="方式二-指定schema"><a href="#方式二-指定schema" class="headerlink" title="方式二(指定schema)"></a>方式二(指定schema)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line">val schema = ArrayType(StructType(StructField(<span class="string">&quot;name&quot;</span>, StringType):: StructField(<span class="string">&quot;age&quot;</span>, IntegerType)::Nil))</span><br><span class="line"></span><br><span class="line">val resultDF = df.select(from_json($<span class="string">&quot;person_info&quot;</span>, schema).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//将JSONArray列映射到一个schema上</span></span><br><span class="line">	.select(explode($<span class="string">&quot;info&quot;</span>).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//展开JSONArray中的元素(JSONObject)为多行</span></span><br><span class="line">	.select(<span class="string">&quot;info.name&quot;</span>, <span class="string">&quot;info.age&quot;</span>) <span class="comment">//获取每个JSONObject中每个key对应的value</span></span><br><span class="line"></span><br><span class="line">resultDF.show()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>JSON</tag>
-        <tag>DataFrame</tag>
-        <tag>Dataset</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java死锁产生的条件及死锁判断排查</title>
     <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
@@ -402,41 +371,34 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>MySQL SELECT查询非分组聚合列（sql_mode=only_full_group_by）</title>
-    <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
-    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> company_name, department, employee <span class="keyword">from</span> company <span class="keyword">group</span> <span class="keyword">by</span> company_name</span><br></pre></td></tr></table></figure>
-<p>如果是MySQL 5.7以前的版本，是可以执行成功的；如果是MySQL 5.7及以上版本，就会报错：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">ERROR 1140 (42000): In aggregated query without GROUP BY, expression... of <span class="keyword">SELECT</span> <span class="keyword">list</span> contains nonaggregated <span class="keyword">column</span> <span class="string">&#x27;col_name&#x27;</span>; this is incompatible <span class="keyword">with</span> sql_mode=only_full_group_by</span><br></pre></td></tr></table></figure>
-
+    <title>JSON数据转成Spark Dataset/DataFrame</title>
+    <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
+    <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
 <a id="more"></a>
 
-<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>在标准的 SQL-92中，上述的查询是不被支持的。也就是说，select列表、having条件和order by列表中是不允许出现非聚合列的，所谓非聚合列就是group by子句中的列。换句话说，就是select中查询的列，必须出现在group by子句中，否则就必须在非聚合列上使用聚合函数（比如sum()、max()等）。</p>
-<p>为什么不允许这样查询呢？主要是因为分组之后，要查询非聚合列，其实是不知道该取那个值的。</p>
-<p>但是MySQL对标准的SQL-92做了扩展，使得select列表、having条件和order by列表中可以引用非聚合列，这个功能可以带来更好的性能，因为它需要对非聚合列进行分组排序。不过在分组之后，查询非聚合列时，其取值是随机的，也就是组内随机取一个，就算是先通过order by进行排序之后，也是随机取值的。</p>
-<p>因为MySQL 5.7之前，配置项ONLY_FULL_GROUP_BY是默认禁用的，也就是支持在select列表、having条件和order by列表中引用非聚合列且不适用聚合函数；而MySQL 5.7及之后的版本中，配置项ONLY_FULL_GROUP_BY默认是开启的，则不支持上述功能。</p>
-<p>可以通过下面SQL查看ONLY_FULL_GROUP_BY是否启用：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 查询的结果中包含ONLY_FULL_GROUP_BY就说明是启用的，否则就是被禁用的</span></span><br><span class="line"><span class="keyword">select</span> @@global.sql_mode;</span><br></pre></td></tr></table></figure>
+<p>接下来我们就看看该如何将各种格式的JSON数据转成DataFrame。</p>
+<h2 id="1-读取JSON文件"><a href="#1-读取JSON文件" class="headerlink" title="1. 读取JSON文件"></a>1. 读取JSON文件</h2><p>读取指定路径下的json文件（或者存放json文件的目录），加载为DataFrame。</p>
+<h6 id="本地文件"><a href="#本地文件" class="headerlink" title="本地文件"></a>本地文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//本地路径</span></span><br><span class="line">val path = <span class="string">&quot;file:/opt/package/jar/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
+<h6 id="HDFS文件"><a href="#HDFS文件" class="headerlink" title="HDFS文件"></a>HDFS文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//HDFS路径</span></span><br><span class="line">val path = <span class="string">&quot;/file/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
 
-<p>由于本人使用的是MySQL 5.7，所以在select中查询非聚合列就出现了上述的报错</p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>了解了问题原因和原理之后，解决起来就比较简单了。</p>
-<p>通过下面SQL将sql_mode中的ONLY_FULL_GROUP_BY替换成空即可：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
+<h2 id="2-List、Seq"><a href="#2-List、Seq" class="headerlink" title="2. List、Seq"></a>2. List、Seq</h2><p>将一个List或Seq加载为DataFrame。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line">val ds = spark.createDataset(<span class="string">&quot;&quot;</span><span class="string">&quot;[&#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Spark<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 10&#125;, &#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Flink<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 5&#125;]&quot;</span><span class="string">&quot;&quot;</span> :: Nil)</span><br><span class="line">spark.read</span><br><span class="line">	<span class="comment">//默认的timestampFormat为 yyyy-MM-dd&#x27;T&#x27;HH:mm:ss.SSSXXX, SSS为毫秒数, XXX为非法字符(会报错&quot;java.lang.IllegalArgumentException: Illegal pattern component: XXX&quot;),</span></span><br><span class="line">	<span class="comment">//需要手动设置时区为Z(即UTC时间)</span></span><br><span class="line">	.option(<span class="string">&quot;timestampFormat&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm:ss.SSSZ&quot;</span>)</span><br><span class="line">	.json(ds)</span><br><span class="line">	.show()</span><br></pre></td></tr></table></figure>
 
-<p>当然也可以设置会话级别的：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
-<p>或者是通过MySQL配置文件my.cnf进行修改（需重启mysql实例）。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
-<li><a href="https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html</a></li>
-<li><a href="https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html</a></li>
-<li><a href="https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by">https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by</a></li>
-</ol>
+
+<h2 id="3-JSON-String类型的Column"><a href="#3-JSON-String类型的Column" class="headerlink" title="3. JSON String类型的Column"></a>3. JSON String类型的Column</h2><p>JSON String类型的Column, 拿Hive来举例的话，就是Hive表中的某一列，其类型为String，其值是JSONArray类型（”[{‘name’: ‘Spark’, ‘age’: 10}, {‘name’: ‘Flink’, ‘age’: 5}]”），或者是JSONObject类型（”{‘name’: ‘Spark’, ‘age’: 10}”）。</p>
+<p>这种情况可以用以下两种方式处理：</p>
+<h6 id="方式一-map函数处理"><a href="#方式一-map函数处理" class="headerlink" title="方式一(map函数处理)"></a>方式一(map函数处理)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//JSON string类型的Dataset转成DataFrame</span></span><br><span class="line">val ds = df.map(row =&gt; JSON.parseArray(row.toString).get(<span class="number">0</span>).toString) </span><br><span class="line"></span><br><span class="line">ds.show()</span><br></pre></td></tr></table></figure>
+
+<h6 id="方式二-指定schema"><a href="#方式二-指定schema" class="headerlink" title="方式二(指定schema)"></a>方式二(指定schema)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line">val schema = ArrayType(StructType(StructField(<span class="string">&quot;name&quot;</span>, StringType):: StructField(<span class="string">&quot;age&quot;</span>, IntegerType)::Nil))</span><br><span class="line"></span><br><span class="line">val resultDF = df.select(from_json($<span class="string">&quot;person_info&quot;</span>, schema).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//将JSONArray列映射到一个schema上</span></span><br><span class="line">	.select(explode($<span class="string">&quot;info&quot;</span>).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//展开JSONArray中的元素(JSONObject)为多行</span></span><br><span class="line">	.select(<span class="string">&quot;info.name&quot;</span>, <span class="string">&quot;info.age&quot;</span>) <span class="comment">//获取每个JSONObject中每个key对应的value</span></span><br><span class="line"></span><br><span class="line">resultDF.show()</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>MySQL</category>
+        <category>Spark</category>
       </categories>
       <tags>
-        <tag>MySQL</tag>
+        <tag>Spark</tag>
+        <tag>JSON</tag>
+        <tag>DataFrame</tag>
+        <tag>Dataset</tag>
       </tags>
   </entry>
   <entry>
@@ -505,6 +467,74 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Linux</tag>
         <tag>sed</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL SELECT查询非分组聚合列（sql_mode=only_full_group_by）</title>
+    <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> company_name, department, employee <span class="keyword">from</span> company <span class="keyword">group</span> <span class="keyword">by</span> company_name</span><br></pre></td></tr></table></figure>
+<p>如果是MySQL 5.7以前的版本，是可以执行成功的；如果是MySQL 5.7及以上版本，就会报错：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">ERROR 1140 (42000): In aggregated query without GROUP BY, expression... of <span class="keyword">SELECT</span> <span class="keyword">list</span> contains nonaggregated <span class="keyword">column</span> <span class="string">&#x27;col_name&#x27;</span>; this is incompatible <span class="keyword">with</span> sql_mode=only_full_group_by</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>在标准的 SQL-92中，上述的查询是不被支持的。也就是说，select列表、having条件和order by列表中是不允许出现非聚合列的，所谓非聚合列就是group by子句中的列。换句话说，就是select中查询的列，必须出现在group by子句中，否则就必须在非聚合列上使用聚合函数（比如sum()、max()等）。</p>
+<p>为什么不允许这样查询呢？主要是因为分组之后，要查询非聚合列，其实是不知道该取那个值的。</p>
+<p>但是MySQL对标准的SQL-92做了扩展，使得select列表、having条件和order by列表中可以引用非聚合列，这个功能可以带来更好的性能，因为它需要对非聚合列进行分组排序。不过在分组之后，查询非聚合列时，其取值是随机的，也就是组内随机取一个，就算是先通过order by进行排序之后，也是随机取值的。</p>
+<p>因为MySQL 5.7之前，配置项ONLY_FULL_GROUP_BY是默认禁用的，也就是支持在select列表、having条件和order by列表中引用非聚合列且不适用聚合函数；而MySQL 5.7及之后的版本中，配置项ONLY_FULL_GROUP_BY默认是开启的，则不支持上述功能。</p>
+<p>可以通过下面SQL查看ONLY_FULL_GROUP_BY是否启用：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 查询的结果中包含ONLY_FULL_GROUP_BY就说明是启用的，否则就是被禁用的</span></span><br><span class="line"><span class="keyword">select</span> @@global.sql_mode;</span><br></pre></td></tr></table></figure>
+
+<p>由于本人使用的是MySQL 5.7，所以在select中查询非聚合列就出现了上述的报错</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>了解了问题原因和原理之后，解决起来就比较简单了。</p>
+<p>通过下面SQL将sql_mode中的ONLY_FULL_GROUP_BY替换成空即可：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>当然也可以设置会话级别的：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
+<p>或者是通过MySQL配置文件my.cnf进行修改（需重启mysql实例）。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a href="https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by">https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
+    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+<a id="more"></a>
+
+<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
+<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
+<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
+<p>SQL实现组内求Top N：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<p>实现思路：</p>
+<ol>
+<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
+<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
+<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
+<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
+</ol>
+<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -579,67 +609,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
-    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
-<a id="more"></a>
-
-<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
-<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
-<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
-<p>SQL实现组内求Top N：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-<p>实现思路：</p>
-<ol>
-<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
-<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
-<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
-<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
-</ol>
-<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-
-<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
-    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
-    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
-<a id="more"></a>
-
-<p>下面是出现问题的一段代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
-<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
-<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
-<ul>
-<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
-<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
-</ul>
-<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
-<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
-<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
-<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL表同步到Hive</title>
     <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
     <content><![CDATA[<p>我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。</p>
@@ -674,6 +643,37 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Sqoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
+    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
+<a id="more"></a>
+
+<p>下面是出现问题的一段代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
+<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
+<ul>
+<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
+<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
+</ul>
+<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
+<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
+<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -841,6 +841,51 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Spark Connector连接器之整合读写HBase</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
+    <content><![CDATA[<p>Spark以不同的方式读写HBase。</p>
+<a id="more"></a>
+
+<h1 id="Spark读HBase"><a href="#Spark读HBase" class="headerlink" title="Spark读HBase"></a>Spark读HBase</h1><h2 id="1-使用newAPIHadoopRDD-API"><a href="#1-使用newAPIHadoopRDD-API" class="headerlink" title="1. 使用newAPIHadoopRDD API"></a>1. 使用newAPIHadoopRDD API</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.Result</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.TableInputFormat</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.HBaseConfiguration</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types.&#123;IntegerType, StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">readHBase</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_START, <span class="string">&quot;start_key&quot;</span>) <span class="comment">//扫描起始rowKey</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_STOP, <span class="string">&quot;stop_key&quot;</span>) <span class="comment">//扫描终止rowKey</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//HBase表加载为RDD[(K, V)]</span></span><br><span class="line">    val rdd = spark.sparkContext.newAPIHadoopRDD(config,</span><br><span class="line">        classOf[TableInputFormat],</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[Result]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">//从Result中获取指定列最新版本的值</span></span><br><span class="line">    val rdd1 = rdd.map(m =&gt; &#123;</span><br><span class="line">        <span class="comment">//获取一行查询结果</span></span><br><span class="line">        val result: Result = m._2</span><br><span class="line"></span><br><span class="line">        val rowKey = Bytes.toString(result.getRow) <span class="comment">//获取row key</span></span><br><span class="line">        val userId = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;user_id&quot;</span>.getBytes))</span><br><span class="line">        val name = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;name&quot;</span>.getBytes))</span><br><span class="line">        val age = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;age&quot;</span>.getBytes))</span><br><span class="line"></span><br><span class="line">        Row(rowKey, userId, name, age)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建schema</span></span><br><span class="line">    val schema = StructType(</span><br><span class="line">      StructField(<span class="string">&quot;user_id&quot;</span>, IntegerType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;name&quot;</span>, StringType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;age&quot;</span>, IntegerType, <span class="keyword">true</span>) :: Nil)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//RDD转为DataFrame</span></span><br><span class="line">    val df = spark.createDataFrame(rdd1, schema)</span><br><span class="line">    </span><br><span class="line">    df.select(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Spark写HBase"><a href="#Spark写HBase" class="headerlink" title="Spark写HBase"></a>Spark写HBase</h1><h2 id="1-saveAsNewAPIHadoopFile-API"><a href="#1-saveAsNewAPIHadoopFile-API" class="headerlink" title="1. saveAsNewAPIHadoopFile API"></a>1. saveAsNewAPIHadoopFile API</h2><p>实现代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.&#123;HFileOutputFormat2, TableInputFormat&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, KeyValue&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Dataset, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">writeHBase</span><span class="params">(spark: SparkSession, datasetJson: Dataset[String])</span>: Unit </span>= &#123;</span><br><span class="line">    \<span class="comment">//假设datasetJson是一个json字符串类型的Dataset, 其结构为&quot;&#123;&quot;name&quot;:&quot;&quot;, &quot;age&quot;:&quot;&quot;, &quot;phone&quot;:&quot;&quot;, &quot;address&quot;:&quot;&quot;, &#125;&quot;</span></span><br><span class="line">    val ds = spark.read.json(datasetJson)</span><br><span class="line">    </span><br><span class="line">    val rdd = ds.rdd.mapPartitions(iterator =&gt; &#123;</span><br><span class="line">        iterator.map(m =&gt; &#123;</span><br><span class="line">            val json = JSON.parseObject(m.toString()) <span class="comment">//json字符串解析成JSONObject</span></span><br><span class="line">            val phone = json.getString(<span class="string">&quot;phone&quot;</span>) <span class="comment">//phone作为KeyValue的row key</span></span><br><span class="line">            json.remove(<span class="string">&quot;phone&quot;</span>) <span class="comment">//以便遍历其他所有键值对</span></span><br><span class="line"></span><br><span class="line">            val writable = <span class="keyword">new</span> ImmutableBytesWritable(Bytes.toBytes(phone)) <span class="comment">//键值对字节序列</span></span><br><span class="line">            val array = ArrayBuffer[(ImmutableBytesWritable, KeyValue)]() <span class="comment">//初始化数组, 存储JSONObject中的键值对</span></span><br><span class="line">            </span><br><span class="line">			<span class="comment">//JSON中的key作为Hbase表中的列名，并按字典序排序</span></span><br><span class="line">            val jsonKeys = json.keySet().toArray.map(_.toString).sortBy(x =&gt; x) </span><br><span class="line"></span><br><span class="line">            val length = jsonKeys.length</span><br><span class="line">            <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) &#123;</span><br><span class="line">                val key = jsonKeys(i)</span><br><span class="line">                val value = json.get(jsonKeys(i)).toString</span><br><span class="line">                <span class="comment">//KeyValue为HBase中的基本类型Key/Value。</span></span><br><span class="line">                <span class="comment">//构造函数中的参数依次为：rowkey、列族、列名、值。</span></span><br><span class="line">                <span class="comment">//Json对象中的每个key和其值构成HBase中每条记录的value</span></span><br><span class="line">                val keyValue: KeyValue = <span class="keyword">new</span> KeyValue(</span><br><span class="line">                    Bytes.toBytes(phone),  <span class="comment">//row key</span></span><br><span class="line">                    <span class="string">&quot;cf&quot;</span>.getBytes(), <span class="comment">//列族名</span></span><br><span class="line">                    key.getBytes(), <span class="comment">//列名</span></span><br><span class="line">                    value.getBytes()) <span class="comment">//列的值</span></span><br><span class="line"></span><br><span class="line">                array += ((writable, keyValue))</span><br><span class="line">            &#125;</span><br><span class="line">            array</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="comment">//重新分区，减少保存的文件数</span></span><br><span class="line">        <span class="comment">//展开数组中的元素</span></span><br><span class="line">        <span class="comment">//对rowkey排序</span></span><br><span class="line">    &#125;).repartition(<span class="number">1</span>).flatMap(x =&gt; x).sortByKey()</span><br><span class="line"></span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    val job = Job.getInstance(config)</span><br><span class="line">    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])</span><br><span class="line">    job.setMapOutputValueClass(classOf[KeyValue])</span><br><span class="line"></span><br><span class="line">    <span class="comment">//持久化到HBase表</span></span><br><span class="line">    rdd.saveAsNewAPIHadoopFile(<span class="string">&quot;/tmp/test&quot;</span>,</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[KeyValue],</span><br><span class="line">        classOf[HFileOutputFormat2],</span><br><span class="line">        job.getConfiguration)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-BulkLoad功能"><a href="#2-BulkLoad功能" class="headerlink" title="2. BulkLoad功能"></a>2. BulkLoad功能</h2><p>在将大批量数据离线导入HBase系统的场景中，不管是使用Put单条插入还是Put批量插入HBase，效率都不理想，还可能占用大量带宽资源，导致其他业务程序运行变慢。这个时候就可以考虑使用Bulk Load，Bulk Load使用MapReduce将待写入数据转换成HFile文件，再直接将这些HFile文件加载到集群中，BulkLoad并没有将写入请求发送给RegionServer，不会占用太多集群资源，效率极高。</p>
+<p>BulkLoad实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.ConnectionFactory</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, TableName&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.&#123;ByteArrayWrapper, FamiliesQualifiersValues, FamilyHFileWriteOptions, HBaseContext&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;DataFrame, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.HBaseRDDFunctions._</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">handle</span><span class="params">(spark: SparkSession, df: DataFrame, key: String, source: String, stagingDir: String)</span>: Unit </span>= &#123;</span><br><span class="line">	val sc = spark.sparkContext</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//使用HBase资源创建一个Configuration</span></span><br><span class="line">	val config = HBaseConfiguration.create()</span><br><span class="line">	\<span class="comment">//Zookeeper节点, 端口号</span></span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.quorum&quot;</span>, <span class="string">&quot;node-3,node-4,node-5&quot;</span>)</span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.property.clientPort&quot;</span>, <span class="string">&quot;2181&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//初始化HbaseContext</span></span><br><span class="line">	val hbaseContext = <span class="keyword">new</span> HBaseContext(sc, config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//DataFrame中的列名</span></span><br><span class="line">	val columns = df.columns</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase表</span></span><br><span class="line">	val tableName = TableName.valueOf(<span class="string">&quot;hbase_table_name&quot;</span>)</span><br><span class="line">	val conn = ConnectionFactory.createConnection(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase column family</span></span><br><span class="line">	val columnFamily: Array[Byte] = Bytes.toBytes(<span class="string">&quot;cf&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase bulk load对于那些少于1000个列短row的Spark实现</span></span><br><span class="line">	df.rdd.hbaseBulkLoadThinRows(</span><br><span class="line">		hbaseContext,</span><br><span class="line">		tableName, \<span class="comment">//要加载进数据的表</span></span><br><span class="line">		t =&gt; &#123; \<span class="comment">//一个要将RDD records转化成key value格式的函数</span></span><br><span class="line">			\<span class="comment">//rowKey</span></span><br><span class="line">			val rowKey = t.getAs(key).toString</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//保存并排序将要bulk load到单个row中的所有cells</span></span><br><span class="line">			val familyQualifiersValues = <span class="keyword">new</span> FamiliesQualifiersValues</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//遍历所有列</span></span><br><span class="line">			columns.foreach(c =&gt; &#123;</span><br><span class="line">				val qualifier = Bytes.toBytes(c) \<span class="comment">//HBase column qualifier</span></span><br><span class="line">				val value: Array[Byte] = Bytes.toBytes(t.getAs(c).toString) \<span class="comment">//HBase cell value</span></span><br><span class="line"></span><br><span class="line">				\<span class="comment">//添加一个新的cell到一个已存在的row</span></span><br><span class="line">				familyQualifiersValues.+=(columnFamily, qualifier, value)</span><br><span class="line">			&#125;)</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//添加字段(字段表示数据来源)</span></span><br><span class="line">			familyQualifiersValues.+=(columnFamily, Bytes.toBytes(<span class="string">&quot;source&quot;</span>), Bytes.toBytes(source))</span><br><span class="line"></span><br><span class="line">			(<span class="keyword">new</span> ByteArrayWrapper(Bytes.toBytes(rowKey)), familyQualifiersValues)</span><br><span class="line">		&#125;,</span><br><span class="line">		stagingDir, \<span class="comment">//要load到文件系统的路径</span></span><br><span class="line">		<span class="keyword">new</span> util.HashMap[Array[Byte], FamilyHFileWriteOptions], \<span class="comment">//一个选项, 可以设置列族写入HFile的方式(compression, bloomType, blockSize, dataBlockEncoding)</span></span><br><span class="line">		compactionExclude = <span class="keyword">false</span> \<span class="comment">//Compaction excluded for the HFiles</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//加载HFileOutputFormat的输出到一个已存在的表</span></span><br><span class="line">	val load = <span class="keyword">new</span> LoadIncrementalHFiles(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//将指定目录下的数据load到指定的表</span></span><br><span class="line">	load.doBulkLoad(<span class="keyword">new</span> Path(stagingDir),</span><br><span class="line">		conn.getAdmin,</span><br><span class="line">		conn.getTable(tableName),</span><br><span class="line">		conn.getRegionLocator(tableName)</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h1><p>spark-submit提交任务时需要依赖的第三方jar包：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastjson-1.2.62.jar</span><br><span class="line">hbase-protocol-1.2.0.jar</span><br><span class="line">hbase-common-1.2.0.jar</span><br><span class="line">hbase-spark-1.2.0-cdh5.16.2.jar</span><br><span class="line">hbase-client-1.2.0.jar</span><br><span class="line">hbase-server-1.2.0.jar</span><br><span class="line">htrace-core-3.1.0-incubating.jar</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>HBase</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark Dataframe转成HashMap</title>
+    <url>/2020/10/11/Spark-Dataframe%E8%BD%AC%E6%88%90HashMap/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>现在有一个json串”{‘address’:[[‘33’,’3301’,’330108’],’xx路xx号’]}”, 需要把address解析出来之后, 将行政区划编码替换为对应的省市区县, 最后输出这样的格式(“浙江省杭州市滨江区xx路xx号”). </p>
+<a id="more"></a>
+
+<p>开发给到的行政区划表(area)的结构如下图:<br><img src="https://img-blog.csdnimg.cn/20200104143122881.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xvdmV0ZWNobG92ZWxpZmU=,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>因为行政区划表在解析json的时候, 很多地方都会用到, 并且行政区划表本身记录数比较少, 占用的内存空间较小, 就考虑将行政区划编码和对应的省市区县放到一个HashMap中, 查询效率也会比较高. </p>
+<p>有的同学可能会问, 为什么不用join? 如果用join关联, 在查省、市、区县时，要么是先过滤出三个Dataframe，分别代表省、市、区县，然后再分别join，要么就是不区分，关联整个行政区划表3次。这样一来，不仅比较麻烦，效率也不高。</p>
+<h1 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h1><p>代码实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.mutable</span><br><span class="line"></span><br><span class="line">val hashMap = spark.read.table(<span class="string">&quot;ods.area&quot;</span>) <span class="comment">//行政区划表</span></span><br><span class="line">	.select(<span class="string">&quot;area_code&quot;</span>, <span class="string">&quot;area_name&quot;</span>) <span class="comment">//只查询需要的字段(行政区划编码、省市区县名称)</span></span><br><span class="line">	.rdd <span class="comment">//Dataframe转化为RDD</span></span><br><span class="line">	<span class="comment">//RDD中每一行转化成area_code和area_name映射的key-value</span></span><br><span class="line">	.map(row =&gt; row.getAs(<span class="string">&quot;area_code&quot;</span>).toString -&gt; row.getAs(<span class="string">&quot;area_name&quot;</span>).toString) </span><br><span class="line">	.collectAsMap() <span class="comment">//将key-value对类型的RDD转化成Map</span></span><br><span class="line">	.asInstanceOf[mutable.HashMap[String, String]]</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>DataFrame</tag>
+        <tag>HashMap</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spark Connector连接器之整合读写Phoenix</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Phoenix/</url>
     <content><![CDATA[<p>Phoenix为NoSQL数据库HBase提供了标准SQL和JDBC API的强大功能，且具备完整的ACID事务处理能力。对于小数据量的查询，其性能可以达到毫秒级别；对于数千万行的数据，其性能也可以达到秒级。</p>
@@ -890,33 +935,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>Spark Connector连接器之整合读写HBase</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[<p>Spark以不同的方式读写HBase。</p>
-<a id="more"></a>
-
-<h1 id="Spark读HBase"><a href="#Spark读HBase" class="headerlink" title="Spark读HBase"></a>Spark读HBase</h1><h2 id="1-使用newAPIHadoopRDD-API"><a href="#1-使用newAPIHadoopRDD-API" class="headerlink" title="1. 使用newAPIHadoopRDD API"></a>1. 使用newAPIHadoopRDD API</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.Result</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.TableInputFormat</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.HBaseConfiguration</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types.&#123;IntegerType, StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">readHBase</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_START, <span class="string">&quot;start_key&quot;</span>) <span class="comment">//扫描起始rowKey</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_STOP, <span class="string">&quot;stop_key&quot;</span>) <span class="comment">//扫描终止rowKey</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//HBase表加载为RDD[(K, V)]</span></span><br><span class="line">    val rdd = spark.sparkContext.newAPIHadoopRDD(config,</span><br><span class="line">        classOf[TableInputFormat],</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[Result]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">//从Result中获取指定列最新版本的值</span></span><br><span class="line">    val rdd1 = rdd.map(m =&gt; &#123;</span><br><span class="line">        <span class="comment">//获取一行查询结果</span></span><br><span class="line">        val result: Result = m._2</span><br><span class="line"></span><br><span class="line">        val rowKey = Bytes.toString(result.getRow) <span class="comment">//获取row key</span></span><br><span class="line">        val userId = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;user_id&quot;</span>.getBytes))</span><br><span class="line">        val name = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;name&quot;</span>.getBytes))</span><br><span class="line">        val age = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;age&quot;</span>.getBytes))</span><br><span class="line"></span><br><span class="line">        Row(rowKey, userId, name, age)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建schema</span></span><br><span class="line">    val schema = StructType(</span><br><span class="line">      StructField(<span class="string">&quot;user_id&quot;</span>, IntegerType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;name&quot;</span>, StringType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;age&quot;</span>, IntegerType, <span class="keyword">true</span>) :: Nil)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//RDD转为DataFrame</span></span><br><span class="line">    val df = spark.createDataFrame(rdd1, schema)</span><br><span class="line">    </span><br><span class="line">    df.select(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Spark写HBase"><a href="#Spark写HBase" class="headerlink" title="Spark写HBase"></a>Spark写HBase</h1><h2 id="1-saveAsNewAPIHadoopFile-API"><a href="#1-saveAsNewAPIHadoopFile-API" class="headerlink" title="1. saveAsNewAPIHadoopFile API"></a>1. saveAsNewAPIHadoopFile API</h2><p>实现代码：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.&#123;HFileOutputFormat2, TableInputFormat&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, KeyValue&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Dataset, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">writeHBase</span><span class="params">(spark: SparkSession, datasetJson: Dataset[String])</span>: Unit </span>= &#123;</span><br><span class="line">    \<span class="comment">//假设datasetJson是一个json字符串类型的Dataset, 其结构为&quot;&#123;&quot;name&quot;:&quot;&quot;, &quot;age&quot;:&quot;&quot;, &quot;phone&quot;:&quot;&quot;, &quot;address&quot;:&quot;&quot;, &#125;&quot;</span></span><br><span class="line">    val ds = spark.read.json(datasetJson)</span><br><span class="line">    </span><br><span class="line">    val rdd = ds.rdd.mapPartitions(iterator =&gt; &#123;</span><br><span class="line">        iterator.map(m =&gt; &#123;</span><br><span class="line">            val json = JSON.parseObject(m.toString()) <span class="comment">//json字符串解析成JSONObject</span></span><br><span class="line">            val phone = json.getString(<span class="string">&quot;phone&quot;</span>) <span class="comment">//phone作为KeyValue的row key</span></span><br><span class="line">            json.remove(<span class="string">&quot;phone&quot;</span>) <span class="comment">//以便遍历其他所有键值对</span></span><br><span class="line"></span><br><span class="line">            val writable = <span class="keyword">new</span> ImmutableBytesWritable(Bytes.toBytes(phone)) <span class="comment">//键值对字节序列</span></span><br><span class="line">            val array = ArrayBuffer[(ImmutableBytesWritable, KeyValue)]() <span class="comment">//初始化数组, 存储JSONObject中的键值对</span></span><br><span class="line">            </span><br><span class="line">			<span class="comment">//JSON中的key作为Hbase表中的列名，并按字典序排序</span></span><br><span class="line">            val jsonKeys = json.keySet().toArray.map(_.toString).sortBy(x =&gt; x) </span><br><span class="line"></span><br><span class="line">            val length = jsonKeys.length</span><br><span class="line">            <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) &#123;</span><br><span class="line">                val key = jsonKeys(i)</span><br><span class="line">                val value = json.get(jsonKeys(i)).toString</span><br><span class="line">                <span class="comment">//KeyValue为HBase中的基本类型Key/Value。</span></span><br><span class="line">                <span class="comment">//构造函数中的参数依次为：rowkey、列族、列名、值。</span></span><br><span class="line">                <span class="comment">//Json对象中的每个key和其值构成HBase中每条记录的value</span></span><br><span class="line">                val keyValue: KeyValue = <span class="keyword">new</span> KeyValue(</span><br><span class="line">                    Bytes.toBytes(phone),  <span class="comment">//row key</span></span><br><span class="line">                    <span class="string">&quot;cf&quot;</span>.getBytes(), <span class="comment">//列族名</span></span><br><span class="line">                    key.getBytes(), <span class="comment">//列名</span></span><br><span class="line">                    value.getBytes()) <span class="comment">//列的值</span></span><br><span class="line"></span><br><span class="line">                array += ((writable, keyValue))</span><br><span class="line">            &#125;</span><br><span class="line">            array</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="comment">//重新分区，减少保存的文件数</span></span><br><span class="line">        <span class="comment">//展开数组中的元素</span></span><br><span class="line">        <span class="comment">//对rowkey排序</span></span><br><span class="line">    &#125;).repartition(<span class="number">1</span>).flatMap(x =&gt; x).sortByKey()</span><br><span class="line"></span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    val job = Job.getInstance(config)</span><br><span class="line">    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])</span><br><span class="line">    job.setMapOutputValueClass(classOf[KeyValue])</span><br><span class="line"></span><br><span class="line">    <span class="comment">//持久化到HBase表</span></span><br><span class="line">    rdd.saveAsNewAPIHadoopFile(<span class="string">&quot;/tmp/test&quot;</span>,</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[KeyValue],</span><br><span class="line">        classOf[HFileOutputFormat2],</span><br><span class="line">        job.getConfiguration)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-BulkLoad功能"><a href="#2-BulkLoad功能" class="headerlink" title="2. BulkLoad功能"></a>2. BulkLoad功能</h2><p>在将大批量数据离线导入HBase系统的场景中，不管是使用Put单条插入还是Put批量插入HBase，效率都不理想，还可能占用大量带宽资源，导致其他业务程序运行变慢。这个时候就可以考虑使用Bulk Load，Bulk Load使用MapReduce将待写入数据转换成HFile文件，再直接将这些HFile文件加载到集群中，BulkLoad并没有将写入请求发送给RegionServer，不会占用太多集群资源，效率极高。</p>
-<p>BulkLoad实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.ConnectionFactory</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, TableName&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.&#123;ByteArrayWrapper, FamiliesQualifiersValues, FamilyHFileWriteOptions, HBaseContext&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;DataFrame, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.HBaseRDDFunctions._</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">handle</span><span class="params">(spark: SparkSession, df: DataFrame, key: String, source: String, stagingDir: String)</span>: Unit </span>= &#123;</span><br><span class="line">	val sc = spark.sparkContext</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//使用HBase资源创建一个Configuration</span></span><br><span class="line">	val config = HBaseConfiguration.create()</span><br><span class="line">	\<span class="comment">//Zookeeper节点, 端口号</span></span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.quorum&quot;</span>, <span class="string">&quot;node-3,node-4,node-5&quot;</span>)</span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.property.clientPort&quot;</span>, <span class="string">&quot;2181&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//初始化HbaseContext</span></span><br><span class="line">	val hbaseContext = <span class="keyword">new</span> HBaseContext(sc, config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//DataFrame中的列名</span></span><br><span class="line">	val columns = df.columns</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase表</span></span><br><span class="line">	val tableName = TableName.valueOf(<span class="string">&quot;hbase_table_name&quot;</span>)</span><br><span class="line">	val conn = ConnectionFactory.createConnection(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase column family</span></span><br><span class="line">	val columnFamily: Array[Byte] = Bytes.toBytes(<span class="string">&quot;cf&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase bulk load对于那些少于1000个列短row的Spark实现</span></span><br><span class="line">	df.rdd.hbaseBulkLoadThinRows(</span><br><span class="line">		hbaseContext,</span><br><span class="line">		tableName, \<span class="comment">//要加载进数据的表</span></span><br><span class="line">		t =&gt; &#123; \<span class="comment">//一个要将RDD records转化成key value格式的函数</span></span><br><span class="line">			\<span class="comment">//rowKey</span></span><br><span class="line">			val rowKey = t.getAs(key).toString</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//保存并排序将要bulk load到单个row中的所有cells</span></span><br><span class="line">			val familyQualifiersValues = <span class="keyword">new</span> FamiliesQualifiersValues</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//遍历所有列</span></span><br><span class="line">			columns.foreach(c =&gt; &#123;</span><br><span class="line">				val qualifier = Bytes.toBytes(c) \<span class="comment">//HBase column qualifier</span></span><br><span class="line">				val value: Array[Byte] = Bytes.toBytes(t.getAs(c).toString) \<span class="comment">//HBase cell value</span></span><br><span class="line"></span><br><span class="line">				\<span class="comment">//添加一个新的cell到一个已存在的row</span></span><br><span class="line">				familyQualifiersValues.+=(columnFamily, qualifier, value)</span><br><span class="line">			&#125;)</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//添加字段(字段表示数据来源)</span></span><br><span class="line">			familyQualifiersValues.+=(columnFamily, Bytes.toBytes(<span class="string">&quot;source&quot;</span>), Bytes.toBytes(source))</span><br><span class="line"></span><br><span class="line">			(<span class="keyword">new</span> ByteArrayWrapper(Bytes.toBytes(rowKey)), familyQualifiersValues)</span><br><span class="line">		&#125;,</span><br><span class="line">		stagingDir, \<span class="comment">//要load到文件系统的路径</span></span><br><span class="line">		<span class="keyword">new</span> util.HashMap[Array[Byte], FamilyHFileWriteOptions], \<span class="comment">//一个选项, 可以设置列族写入HFile的方式(compression, bloomType, blockSize, dataBlockEncoding)</span></span><br><span class="line">		compactionExclude = <span class="keyword">false</span> \<span class="comment">//Compaction excluded for the HFiles</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//加载HFileOutputFormat的输出到一个已存在的表</span></span><br><span class="line">	val load = <span class="keyword">new</span> LoadIncrementalHFiles(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//将指定目录下的数据load到指定的表</span></span><br><span class="line">	load.doBulkLoad(<span class="keyword">new</span> Path(stagingDir),</span><br><span class="line">		conn.getAdmin,</span><br><span class="line">		conn.getTable(tableName),</span><br><span class="line">		conn.getRegionLocator(tableName)</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h1><p>spark-submit提交任务时需要依赖的第三方jar包：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastjson-1.2.62.jar</span><br><span class="line">hbase-protocol-1.2.0.jar</span><br><span class="line">hbase-common-1.2.0.jar</span><br><span class="line">hbase-spark-1.2.0-cdh5.16.2.jar</span><br><span class="line">hbase-client-1.2.0.jar</span><br><span class="line">hbase-server-1.2.0.jar</span><br><span class="line">htrace-core-3.1.0-incubating.jar</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>HBase</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Spark DataFrame导出为Excel文件</title>
     <url>/2020/10/11/Spark-DataFrame%E5%AF%BC%E5%87%BA%E4%B8%BAExcel%E6%96%87%E4%BB%B6/</url>
     <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>有时候我们在进行一些表的计算之后，会生成一些指标，需要导出来给其它同事用，虽说可以将DataFrame直接写成表，然后通过工具(比如Hue)导出为Excel，但是步骤就多了，而且如果要导出的表比较多的话，就更浪费时间了，那么这时候调用第三方插件就可以直接导出为Excel。</p>
@@ -944,24 +962,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Spark</tag>
         <tag>DataFrame</tag>
         <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark Dataframe转成HashMap</title>
-    <url>/2020/10/11/Spark-Dataframe%E8%BD%AC%E6%88%90HashMap/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>现在有一个json串”{‘address’:[[‘33’,’3301’,’330108’],’xx路xx号’]}”, 需要把address解析出来之后, 将行政区划编码替换为对应的省市区县, 最后输出这样的格式(“浙江省杭州市滨江区xx路xx号”). </p>
-<a id="more"></a>
-
-<p>开发给到的行政区划表(area)的结构如下图:<br><img src="https://img-blog.csdnimg.cn/20200104143122881.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xvdmV0ZWNobG92ZWxpZmU=,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><br>因为行政区划表在解析json的时候, 很多地方都会用到, 并且行政区划表本身记录数比较少, 占用的内存空间较小, 就考虑将行政区划编码和对应的省市区县放到一个HashMap中, 查询效率也会比较高. </p>
-<p>有的同学可能会问, 为什么不用join? 如果用join关联, 在查省、市、区县时，要么是先过滤出三个Dataframe，分别代表省、市、区县，然后再分别join，要么就是不区分，关联整个行政区划表3次。这样一来，不仅比较麻烦，效率也不高。</p>
-<h1 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h1><p>代码实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> scala.collection.mutable</span><br><span class="line"></span><br><span class="line">val hashMap = spark.read.table(<span class="string">&quot;ods.area&quot;</span>) <span class="comment">//行政区划表</span></span><br><span class="line">	.select(<span class="string">&quot;area_code&quot;</span>, <span class="string">&quot;area_name&quot;</span>) <span class="comment">//只查询需要的字段(行政区划编码、省市区县名称)</span></span><br><span class="line">	.rdd <span class="comment">//Dataframe转化为RDD</span></span><br><span class="line">	<span class="comment">//RDD中每一行转化成area_code和area_name映射的key-value</span></span><br><span class="line">	.map(row =&gt; row.getAs(<span class="string">&quot;area_code&quot;</span>).toString -&gt; row.getAs(<span class="string">&quot;area_name&quot;</span>).toString) </span><br><span class="line">	.collectAsMap() <span class="comment">//将key-value对类型的RDD转化成Map</span></span><br><span class="line">	.asInstanceOf[mutable.HashMap[String, String]]</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>DataFrame</tag>
-        <tag>HashMap</tag>
       </tags>
   </entry>
   <entry>
@@ -1003,6 +1003,36 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Spark中一行代码转换DataFrame所有列的类型</title>
+    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
+<a id="more"></a>
+
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
+<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
+<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
+</ul>
+<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
+<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
+<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
+<ol>
+<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
+<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spark内存管理(静态内存管理和统一内存管理)</title>
     <url>/2020/10/11/Spark%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%99%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%92%8C%E7%BB%9F%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<p>Spark1.6.0版本之前提供的是静态内存管理，实现类<strong>StaticMemoryManager</strong>；<br>Spark1.6.0版本及之后默认的是统一内存管理，实现类是<strong>UnifiedMemoryManager</strong>。</p>
@@ -1038,96 +1068,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Spark内存管理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark中一行代码转换DataFrame所有列的类型</title>
-    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
-<a id="more"></a>
-
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
-<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
-<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
-</ul>
-<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
-<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
-<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
-<ol>
-<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
-<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Vim编辑器常用操作</title>
-    <url>/2020/10/11/Vim%E7%BC%96%E8%BE%91%E5%99%A8%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>Vim常用命令</p>
-<a id="more"></a>
-
-<h1 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h1><ul>
-<li>快速移动到行首：^</li>
-<li>快速移动到行尾：$</li>
-<li>快速移动到文件第一行：连按两下g键</li>
-<li>快速移动到文件最后一行：shift+g组合键</li>
-</ul>
-<h1 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h1><ol>
-<li>非编辑模式下输入斜杠(/)，之后紧挨着输入要查找的内容</li>
-<li>按回车键定位到要查找的内容</li>
-<li>按n键查找下一个；shift+n键查找上一个</li>
-</ol>
-<h1 id="行号"><a href="#行号" class="headerlink" title="行号"></a>行号</h1><ul>
-<li><h2 id="显示行号"><a href="#显示行号" class="headerlink" title="显示行号"></a>显示行号</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>输入英文的冒号</li>
-<li>输入set number，然后按回车键即会显示行号</li>
-</ol>
-<ul>
-<li><h2 id="取消行号"><a href="#取消行号" class="headerlink" title="取消行号"></a>取消行号</h2></li>
-</ul>
-<ol>
-<li>非编辑模式下输入英文的冒号</li>
-<li>输入set nonumber，然后按回车键即会取消行号</li>
-</ol>
-<h1 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h1><ul>
-<li><h2 id="批量注释"><a href="#批量注释" class="headerlink" title="批量注释"></a>批量注释</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>键盘上下键移动到要注释文本的第一行</li>
-<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
-<li>键盘上下键移动到要注释文本的最后一行</li>
-<li>组合键shift + i 进入编辑模式</li>
-<li>输入注释符号(#或者//等)</li>
-<li>连续按两次ESC键，此时会看到选中的行被注释</li>
-</ol>
-<ul>
-<li><h2 id="批量取消注释"><a href="#批量取消注释" class="headerlink" title="批量取消注释"></a>批量取消注释</h2></li>
-</ul>
-<ol>
-<li>vim进入待编辑文件</li>
-<li>键盘上下键移动到要取消注释文本的第一行</li>
-<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
-<li>键盘上下键移动到要取消注释文本的最后一行</li>
-<li>按下键盘的d键，此时会看到选中的行被取消注释</li>
-</ol>
-]]></content>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Vim</tag>
       </tags>
   </entry>
   <entry>
@@ -1193,6 +1133,66 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Hadoop</tag>
         <tag>Yarn</tag>
         <tag>HDFS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vim编辑器常用操作</title>
+    <url>/2020/10/11/Vim%E7%BC%96%E8%BE%91%E5%99%A8%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>Vim常用命令</p>
+<a id="more"></a>
+
+<h1 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h1><ul>
+<li>快速移动到行首：^</li>
+<li>快速移动到行尾：$</li>
+<li>快速移动到文件第一行：连按两下g键</li>
+<li>快速移动到文件最后一行：shift+g组合键</li>
+</ul>
+<h1 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h1><ol>
+<li>非编辑模式下输入斜杠(/)，之后紧挨着输入要查找的内容</li>
+<li>按回车键定位到要查找的内容</li>
+<li>按n键查找下一个；shift+n键查找上一个</li>
+</ol>
+<h1 id="行号"><a href="#行号" class="headerlink" title="行号"></a>行号</h1><ul>
+<li><h2 id="显示行号"><a href="#显示行号" class="headerlink" title="显示行号"></a>显示行号</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>输入英文的冒号</li>
+<li>输入set number，然后按回车键即会显示行号</li>
+</ol>
+<ul>
+<li><h2 id="取消行号"><a href="#取消行号" class="headerlink" title="取消行号"></a>取消行号</h2></li>
+</ul>
+<ol>
+<li>非编辑模式下输入英文的冒号</li>
+<li>输入set nonumber，然后按回车键即会取消行号</li>
+</ol>
+<h1 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h1><ul>
+<li><h2 id="批量注释"><a href="#批量注释" class="headerlink" title="批量注释"></a>批量注释</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>键盘上下键移动到要注释文本的第一行</li>
+<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
+<li>键盘上下键移动到要注释文本的最后一行</li>
+<li>组合键shift + i 进入编辑模式</li>
+<li>输入注释符号(#或者//等)</li>
+<li>连续按两次ESC键，此时会看到选中的行被注释</li>
+</ol>
+<ul>
+<li><h2 id="批量取消注释"><a href="#批量取消注释" class="headerlink" title="批量取消注释"></a>批量取消注释</h2></li>
+</ul>
+<ol>
+<li>vim进入待编辑文件</li>
+<li>键盘上下键移动到要取消注释文本的第一行</li>
+<li>组合键ctrl + v 进入 VISUAL BLOCK 模式</li>
+<li>键盘上下键移动到要取消注释文本的最后一行</li>
+<li>按下键盘的d键，此时会看到选中的行被取消注释</li>
+</ol>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Vim</tag>
       </tags>
   </entry>
   <entry>
@@ -1371,31 +1371,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
-    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
-<a id="more"></a>
-
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
-<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
-<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
-<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Hive</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>数据仓库架构、维度数据建模、雪花模型和星型模型</title>
     <url>/2020/10/11/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E6%9E%B6%E6%9E%84%E3%80%81%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1%E3%80%81%E9%9B%AA%E8%8A%B1%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%98%9F%E5%9E%8B%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[<p>在GeeksforGeeks上看到了几篇关于数据仓库架构、维度数据建模的文章，进行翻译整理并加入了一些自己的理解，输出了这篇文章。</p>
@@ -1480,6 +1455,31 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>数据仓库</tag>
         <tag>维度模型</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
+    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
+    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
+<a id="more"></a>
+
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
+<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
+<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
+<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
