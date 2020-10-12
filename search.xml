@@ -517,9 +517,9 @@
       
         <tags>
             
-            <tag> Hive </tag>
-            
             <tag> Impala </tag>
+            
+            <tag> Hive </tag>
             
         </tags>
       
@@ -675,9 +675,9 @@
             
             <tag> Spark </tag>
             
-            <tag> Phoenix </tag>
-            
             <tag> HBase </tag>
+            
+            <tag> Phoenix </tag>
             
         </tags>
       
