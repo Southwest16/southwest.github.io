@@ -12,7 +12,7 @@
 
 <link rel="stylesheet" href="/css/main.css">
 
-
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
 <script id="hexo-configurations">
@@ -20,16 +20,17 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="专注于大数据领域">
+  <meta name="description" content="我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL表同步到Hive">
 <meta property="og:url" content="http://example.com/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/index.html">
 <meta property="og:site_name" content="aof的博客">
-<meta property="og:description" content="专注于大数据领域">
+<meta property="og:description" content="我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-11T05:34:40.000Z">
-<meta property="article:modified_time" content="2020-10-11T05:34:40.858Z">
+<meta property="article:modified_time" content="2020-10-12T12:52:40.223Z">
 <meta property="article:author" content="aof">
+<meta property="article:tag" content="Sqoop">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/">
@@ -218,6 +219,22 @@
 
               <time title="创建时间：2020-10-11 13:34:40" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:40+08:00">2020-10-11</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-10-12 20:52:40" itemprop="dateModified" datetime="2020-10-12T20:52:40+08:00">2020-10-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Sqoop/" itemprop="url" rel="index"><span itemprop="name">Sqoop</span></a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -228,7 +245,7 @@
               <span id="busuanzi_value_page_pv"></span>
             </span>
             <span class="post-meta-divider">|</span>
-            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 0</span>
+            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 699</span>
 
         </div>
       </header>
@@ -239,7 +256,33 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <p>我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。</p>
+<a id="more"></a>
+
+<h1 id="Sqoop命令"><a href="#Sqoop命令" class="headerlink" title="Sqoop命令"></a>Sqoop命令</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">sqoop import \</span><br><span class="line">--connect jdbc:mysql://host:3306/mysqldb?autoReconnect=true&amp;tinyInt1isBit=false&amp;zeroDateTimeBehavior=round \</span><br><span class="line">--username user_name \</span><br><span class="line">--password-file /home/sqoop/password \</span><br><span class="line">--hive-import \</span><br><span class="line">--hive-database hivedb \</span><br><span class="line">--hive-table hivetable \</span><br><span class="line">--query &quot;select id,user_id,user_name from mysql_table where (updated_at &gt;= &#x27;2019-04-19 00:00:00&#x27;) and \$CONDITIONS&quot; \</span><br><span class="line">--null-string &#x27;\\N&#x27; \</span><br><span class="line">--null-non-string &#x27;\\N&#x27; \</span><br><span class="line">--hive-drop-import-delims \</span><br><span class="line">--map-column-java id=String,user_id=String,user_name=String</span><br><span class="line">--target-dir /tmp \</span><br><span class="line">--as-parquetfile \</span><br><span class="line">--fields-terminated-by &#x27;^&#x27; \</span><br><span class="line">-m 1</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h1><ul>
+<li><strong>–connect</strong>： 要连接的服务器和数据库  </li>
+<li><strong>–username</strong>： 数据库连接用户名  </li>
+<li><strong>–password-file</strong>：  数据库连接密码。也可以使用参数–password(直接将密码写在参数后面)或-P(控制台输入)，但是向数据库提供密码的安全方式是将密码保存在用户目录下的一个文件中，并赋予400权限。 </li>
+<li><strong>–hive-import</strong>：  导入表到Hive </li>
+<li><strong>–hive-database</strong>：  指定要导入的Hive数据仓库名 </li>
+<li><strong>–hive-table</strong>：  指定要导入的Hive表名 </li>
+<li><strong>–query</strong>：  导入指定的statement查询结果 </li>
+<li><strong>–null-string</strong>：  对于string类型的列，要转换成null的字符串。具体含义：因为在默认情况下，Sqoop会将NULL值导入为null字符串(“null”)，但是Hive使用字符串\N(“\N”)来表示NULL值，因此谓词处理将不能正确工作(像is null)。如果希望将MySQL中的NULL导入到Hive之后还同样是NULL，可添加参数–null-string和–null-non-string。 </li>
+<li><strong>–null-non-string</strong>：  对于非string类型的列，要转换为null的字符串，含义同上。 </li>
+<li><strong>–hive-drop-import-delims</strong>：  如果你的数据库的行包含具有Hive默认行分隔符(\n和\r字符)或列分隔符(\01字符)的字符串字段，则在Sqoop-import导入时会出现问题。可以使用–hive-drop-import-delims选项在导入时删除这些字符，以提供与Hive兼容的文本数据。或者也可以使用–hive-delims-replacement选项，使用用户定义的导入字符替换这些字符。 </li>
+<li><strong>–map-column-java</strong>：  Sqoop预先配置为将大多数SQL类型映射到合适的Java或Hive类型，然而，默认的映射并不能适用于所有情况，可以使用–map-column-java选项覆盖用于将映射更改为Java或使用–map-column-hive选项覆盖用于更改Hive映射。 </li>
+<li><strong>–target-dir</strong>：  MapReduce job指定在HDFS上的输出目录 </li>
+<li><strong>–as-parquetfile</strong>：  导入数据为parquet格式的文件 </li>
+<li><strong>–fields-terminated-by</strong>：  字段分隔符 </li>
+<li><strong>-m</strong>：  控制map任务数量，也就是并行度 </li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="http://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_connecting_to_a_database_server">http://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_connecting_to_a_database_server</a></li>
+</ol>
+
     </div>
 
     
@@ -247,6 +290,9 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Sqoop/" rel="tag"># Sqoop</a>
+          </div>
 
         
 
@@ -254,8 +300,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/" rel="prev" title="单词统计WordCount (Scala/Python/Java)">
-      <i class="fa fa-chevron-left"></i> 单词统计WordCount (Scala/Python/Java)
+    <a href="/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/" rel="prev" title="Spark实现单词统计WordCount (Scala/Python/Java)">
+      <i class="fa fa-chevron-left"></i> Spark实现单词统计WordCount (Scala/Python/Java)
     </a></div>
       <div class="post-nav-item">
     <a href="/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/" rel="next" title="Python读写Phoenix">
@@ -319,6 +365,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Sqoop%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">Sqoop命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">参数详解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -339,13 +386,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">15</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-count">41</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -403,7 +450,7 @@
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">全站共 23.3k 字</span>
+  <span class="post-count">全站共 31.3k 字</span>
 </div>
 
         

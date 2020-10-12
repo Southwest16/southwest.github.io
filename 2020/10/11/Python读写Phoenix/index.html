@@ -12,7 +12,7 @@
 
 <link rel="stylesheet" href="/css/main.css">
 
-
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
 <script id="hexo-configurations">
@@ -20,16 +20,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="专注于大数据领域">
+  <meta name="description" content="Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Python读写Phoenix">
 <meta property="og:url" content="http://example.com/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/index.html">
 <meta property="og:site_name" content="aof的博客">
-<meta property="og:description" content="专注于大数据领域">
+<meta property="og:description" content="Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-11T05:34:43.000Z">
-<meta property="article:modified_time" content="2020-10-11T05:34:43.593Z">
+<meta property="article:modified_time" content="2020-10-12T12:52:18.693Z">
 <meta property="article:author" content="aof">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Phoenix">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/">
@@ -218,6 +220,22 @@
 
               <time title="创建时间：2020-10-11 13:34:43" itemprop="dateCreated datePublished" datetime="2020-10-11T13:34:43+08:00">2020-10-11</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-10-12 20:52:18" itemprop="dateModified" datetime="2020-10-12T20:52:18+08:00">2020-10-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Phoenix/" itemprop="url" rel="index"><span itemprop="name">Phoenix</span></a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -228,7 +246,7 @@
               <span id="busuanzi_value_page_pv"></span>
             </span>
             <span class="post-meta-divider">|</span>
-            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 0</span>
+            <span title="post.wordcount"><span class="post-meta-item-icon"><i class="fa fa-file-word-o"></i></span>字： 176</span>
 
         </div>
       </header>
@@ -239,7 +257,18 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
+<a id="more"></a>
+
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -247,6 +276,10 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/Phoenix/" rel="tag"># Phoenix</a>
+          </div>
 
         
 
@@ -319,6 +352,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">模块安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">代码实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E6%89%A7%E8%A1%8C"><span class="nav-number">3.</span> <span class="nav-text">程序执行</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -339,13 +373,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">15</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-count">41</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -403,7 +437,7 @@
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">全站共 23.3k 字</span>
+  <span class="post-count">全站共 31.3k 字</span>
 </div>
 
         

@@ -164,12 +164,82 @@
   <entry>
     <title>Hadoop集群数据迁移</title>
     <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="集群版本"><a href="#集群版本" class="headerlink" title="集群版本"></a>集群版本</h1><pre><code>源集群: Hadoop-2.7.3、Hive-1.2.1(均为Apache开源版本)
+目标集群: Hadoop-2.6.0、Hive-1.1.0(均为CDH-5.15.0版本)</code></pre>
+<a id="more"></a>
+
+<h1 id="迁移步骤"><a href="#迁移步骤" class="headerlink" title="迁移步骤"></a>迁移步骤</h1><h2 id="第一步：Hive-export命令导出表到HDFS指定目录"><a href="#第一步：Hive-export命令导出表到HDFS指定目录" class="headerlink" title="第一步：Hive export命令导出表到HDFS指定目录"></a>第一步：Hive export命令导出表到HDFS指定目录</h2><pre><code>hive -e &quot;export table test.user_info to &#39;/hive_export/test.user_info&#39;;</code></pre>
+<blockquote>
+<p>import和export命令的基本用法可以参考:<br>    <a href="https://cwiki.apache.org/confluence/display/Hive/LanguageManual+ImportExport">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+ImportExport</a></p>
+</blockquote>
+<p>默认配置参数情况下，如果表中单个文件大于32M，导出时会报错：</p>
+<pre><code>Failed with exception Cannot get DistCp constructor: org.apache.hadoop.tools.DistCp.&lt;init&gt;()
+FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.CopyTask</code></pre>
+<blockquote>
+<p>原因：由于export命令相当于拷贝hive表数据到指定目录，拷贝文件的默认最大值为hive.exec.<br>copyfile.maxsize=33554432(32M)，超过了这个阈值，会报上述错误。解决办法就是给参数hive.<br>exec.copyfile.maxsize设置一个适合你表文件大小的值，例如set hive.exec.copyfile.maxsize = 335544320(320M)。</p>
+</blockquote>
+<h2 id="第二步：传输数据到目标集群"><a href="#第二步：传输数据到目标集群" class="headerlink" title="第二步：传输数据到目标集群"></a>第二步：传输数据到目标集群</h2><pre><code>hadoop distcp hftp://host:50070/hive_export/test.user_info/* hdfs://nameservice1/hive_import/test.user_info</code></pre>
+<p>distcp基本用法可参考：<a href="http://hadoop.apache.org/docs/current/hadoop-distcp/DistCp.html">http://hadoop.apache.org/docs/current/hadoop-distcp/DistCp.html</a></p>
+<blockquote>
+<p>注意： 此命令要在目标集群的Namenode节点执行</p>
+</blockquote>
+<p>如果你的源集群和目标集群版本不一致会报以下错误信息：</p>
+<pre><code>Caused by: java.io.IOException: Couldn&#39;t run retriable-command
+Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
+<blockquote>
+<p>解决方法：可以在distcp后面跟上 -Ddfs.checksum.type=CRC32 或 -pb</p>
+</blockquote>
+<h2 id="第三步：Hive-import命令将数据导入到Hive表"><a href="#第三步：Hive-import命令将数据导入到Hive表" class="headerlink" title="第三步：Hive import命令将数据导入到Hive表"></a>第三步：Hive import命令将数据导入到Hive表</h2><pre><code>hive -e &quot;import table test.user_info from &#39;/hive_import/test.user_info&#39;;&quot;</code></pre>
+<p>可以给表重命名，也可以导出为外部表。可参考：<a href="https://cwiki.apache.org/confluence/display/Hive/LanguageManual+ImportExport">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+ImportExport</a></p>
+<h2 id="第四步：修改hive表存储路径"><a href="#第四步：修改hive表存储路径" class="headerlink" title="第四步：修改hive表存储路径"></a>第四步：修改hive表存储路径</h2><blockquote>
+<p>只有在源集群和目标集群的NameNode别名不一致时才执行，否则Spark SQL无法访问Hive表。</p>
+</blockquote>
+<pre><code>hive -e &quot;alter table test.user_info set serdeproperties (&#39;path&#39; = &#39;hdfs://nameservice1/user/hive/warehouse/test.db/user_info&#39;);“</code></pre>
+]]></content>
+      <categories>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
+      </tags>
   </entry>
   <entry>
     <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/11/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[]]></content>
+    <url>/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
+    <content><![CDATA[<h2 id="什么是背压"><a href="#什么是背压" class="headerlink" title="什么是背压"></a>什么是背压</h2><p>在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做<strong>背压</strong>。</p>
+<a id="more"></a>
+
+<h1 id="Spark-Streaming中的背压"><a href="#Spark-Streaming中的背压" class="headerlink" title="Spark Streaming中的背压"></a>Spark Streaming中的背压</h1><p>在Spark 1.5之前，流应用程序如果因为资源不足导致处理数据的速度跟不上接收数据的速度的情况，可以通过设置每秒所接收数据的最大条数来缓解这种情况。对于使用Receiver的方式可以通过设置’spark.streaming.receiver.maxRate’参数；对于使用Direct的方式设置参数’spark.streaming.kafka.maxRatePerPartition’。</p>
+<p>Spark在1.5版本中引入了背压功能，就不再需要设置上述的速率限制了，Spark Streaming会随着处理条件的变化，自动计算所需要的速率，并进行动态地调整，但前提条件是要通过设置参数’spark.streaming.backpressure.enabled’=true来启用这个功能，因为这个功能在默认情况下是未启用的。</p>
+<h1 id="Flink中的背压"><a href="#Flink中的背压" class="headerlink" title="Flink中的背压"></a>Flink中的背压</h1><p>Flink的web界面上提供了一个标签来监控正在运行的job的背压行为。如果你看一个task的back pressure warning为High的话，那就表明产生数据的速度要比下游算子的消费速度快。拿一个简单的Source -&gt; Sink的例子来说，就是Sink算子对上游的Source算子产生了背压。</p>
+<h2 id="Flink是如何监控背压的"><a href="#Flink是如何监控背压的" class="headerlink" title="Flink是如何监控背压的"></a>Flink是如何监控背压的</h2><p>Flink中的背压监控是通过反复获取运行任务的堆栈跟踪样本来实现的。JobManager会为job中的tasks重复调用Thread.getStackTrace()。</p>
+<p>下面是官方提供的示意图：<br><img src="01.png" alt="alt"><br>如果堆栈跟踪样本显示某个task线程被卡在了某个内部方法的调用中(从网络堆栈请求缓冲)，则表明该task存在背压。</p>
+<p>默认情况下，为了确认是否存在背压，Job Manager会每50ms为每个task触发100次堆栈跟踪。我们可以从Web界面上看到有多少堆栈跟踪被卡在了内部方法的调用中，例如，0.01表示100跟踪里面有一个被卡在该方法中。</p>
+<p>下面是不同的比率对应的背压情况：</p>
+<ul>
+<li><p><strong>OK</strong>: 0 &lt;= Ratio &lt;= 0.10</p>
+</li>
+<li><p><strong>LOW</strong>: 0.10 &lt; Ratio &lt;= 0.5</p>
+</li>
+<li><p><strong>HIGH</strong>: 0.5 &lt; Ratio &lt;= 1</p>
+<p>为了不让task managers因为频繁触发堆栈跟踪而负载过重，Web监控接口会每60秒刷新一次跟踪样本。</p>
+</li>
+</ul>
+<h2 id="背压状态"><a href="#背压状态" class="headerlink" title="背压状态"></a>背压状态</h2><p>我们可以在Job overview旁边找到 Back Pressure标签。</p>
+<p>如果tasks的背压状态是<strong>OK</strong>，则表明没有背压情况。如下图：<br><img src="02.png" alt="alt"></p>
+<p>如果状态是<strong>HIGH</strong>，则表明tasks出现了背压。如下图：<br><img src="03.png" alt="alt"></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://spark.apache.org/docs/latest/streaming-programming-guide.html">https://spark.apache.org/docs/latest/streaming-programming-guide.html</a></li>
+<li><a href="https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html">https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+        <tag>Spark Streaming</tag>
+      </tags>
   </entry>
   <entry>
     <title>Hive/Spark SQL常用函数-窗口分析函数、行列转换、JSON处理</title>
@@ -541,7 +611,39 @@
   <entry>
     <title>MySQL表同步到Hive</title>
     <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。</p>
+<a id="more"></a>
+
+<h1 id="Sqoop命令"><a href="#Sqoop命令" class="headerlink" title="Sqoop命令"></a>Sqoop命令</h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqoop import \</span><br><span class="line">--connect jdbc:mysql://host:3306/mysqldb?autoReconnect=true&amp;tinyInt1isBit=false&amp;zeroDateTimeBehavior=round \</span><br><span class="line">--username user_name \</span><br><span class="line">--password-file /home/sqoop/password \</span><br><span class="line">--hive-import \</span><br><span class="line">--hive-database hivedb \</span><br><span class="line">--hive-table hivetable \</span><br><span class="line">--query &quot;select id,user_id,user_name from mysql_table where (updated_at &gt;= &#x27;2019-04-19 00:00:00&#x27;) and \$CONDITIONS&quot; \</span><br><span class="line">--null-string &#x27;\\N&#x27; \</span><br><span class="line">--null-non-string &#x27;\\N&#x27; \</span><br><span class="line">--hive-drop-import-delims \</span><br><span class="line">--map-column-java id=String,user_id=String,user_name=String</span><br><span class="line">--target-dir /tmp \</span><br><span class="line">--as-parquetfile \</span><br><span class="line">--fields-terminated-by &#x27;^&#x27; \</span><br><span class="line">-m 1</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h1><ul>
+<li><strong>–connect</strong>： 要连接的服务器和数据库  </li>
+<li><strong>–username</strong>： 数据库连接用户名  </li>
+<li><strong>–password-file</strong>：  数据库连接密码。也可以使用参数–password(直接将密码写在参数后面)或-P(控制台输入)，但是向数据库提供密码的安全方式是将密码保存在用户目录下的一个文件中，并赋予400权限。 </li>
+<li><strong>–hive-import</strong>：  导入表到Hive </li>
+<li><strong>–hive-database</strong>：  指定要导入的Hive数据仓库名 </li>
+<li><strong>–hive-table</strong>：  指定要导入的Hive表名 </li>
+<li><strong>–query</strong>：  导入指定的statement查询结果 </li>
+<li><strong>–null-string</strong>：  对于string类型的列，要转换成null的字符串。具体含义：因为在默认情况下，Sqoop会将NULL值导入为null字符串(“null”)，但是Hive使用字符串\N(“\N”)来表示NULL值，因此谓词处理将不能正确工作(像is null)。如果希望将MySQL中的NULL导入到Hive之后还同样是NULL，可添加参数–null-string和–null-non-string。 </li>
+<li><strong>–null-non-string</strong>：  对于非string类型的列，要转换为null的字符串，含义同上。 </li>
+<li><strong>–hive-drop-import-delims</strong>：  如果你的数据库的行包含具有Hive默认行分隔符(\n和\r字符)或列分隔符(\01字符)的字符串字段，则在Sqoop-import导入时会出现问题。可以使用–hive-drop-import-delims选项在导入时删除这些字符，以提供与Hive兼容的文本数据。或者也可以使用–hive-delims-replacement选项，使用用户定义的导入字符替换这些字符。 </li>
+<li><strong>–map-column-java</strong>：  Sqoop预先配置为将大多数SQL类型映射到合适的Java或Hive类型，然而，默认的映射并不能适用于所有情况，可以使用–map-column-java选项覆盖用于将映射更改为Java或使用–map-column-hive选项覆盖用于更改Hive映射。 </li>
+<li><strong>–target-dir</strong>：  MapReduce job指定在HDFS上的输出目录 </li>
+<li><strong>–as-parquetfile</strong>：  导入数据为parquet格式的文件 </li>
+<li><strong>–fields-terminated-by</strong>：  字段分隔符 </li>
+<li><strong>-m</strong>：  控制map任务数量，也就是并行度 </li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="http://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_connecting_to_a_database_server">http://sqoop.apache.org/docs/1.4.6/SqoopUserGuide.html#_connecting_to_a_database_server</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Sqoop</category>
+      </categories>
+      <tags>
+        <tag>Sqoop</tag>
+      </tags>
   </entry>
   <entry>
     <title>Python使用POP3协议客户端poplib登录邮箱并解压缩zip、rar压缩包</title>
@@ -718,12 +820,52 @@
   <entry>
     <title>Python读写Phoenix</title>
     <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
+<a id="more"></a>
+
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Phoenix</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Phoenix</tag>
+      </tags>
   </entry>
   <entry>
     <title>Spark Connector连接器之整合读写HBase</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>Spark以不同的方式读写HBase。</p>
+<a id="more"></a>
+
+<h1 id="Spark读HBase"><a href="#Spark读HBase" class="headerlink" title="Spark读HBase"></a>Spark读HBase</h1><h2 id="1-使用newAPIHadoopRDD-API"><a href="#1-使用newAPIHadoopRDD-API" class="headerlink" title="1. 使用newAPIHadoopRDD API"></a>1. 使用newAPIHadoopRDD API</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.Result</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.TableInputFormat</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.HBaseConfiguration</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types.&#123;IntegerType, StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">readHBase</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_START, <span class="string">&quot;start_key&quot;</span>) <span class="comment">//扫描起始rowKey</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_STOP, <span class="string">&quot;stop_key&quot;</span>) <span class="comment">//扫描终止rowKey</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//HBase表加载为RDD[(K, V)]</span></span><br><span class="line">    val rdd = spark.sparkContext.newAPIHadoopRDD(config,</span><br><span class="line">        classOf[TableInputFormat],</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[Result]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">//从Result中获取指定列最新版本的值</span></span><br><span class="line">    val rdd1 = rdd.map(m =&gt; &#123;</span><br><span class="line">        <span class="comment">//获取一行查询结果</span></span><br><span class="line">        val result: Result = m._2</span><br><span class="line"></span><br><span class="line">        val rowKey = Bytes.toString(result.getRow) <span class="comment">//获取row key</span></span><br><span class="line">        val userId = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;user_id&quot;</span>.getBytes))</span><br><span class="line">        val name = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;name&quot;</span>.getBytes))</span><br><span class="line">        val age = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;age&quot;</span>.getBytes))</span><br><span class="line"></span><br><span class="line">        Row(rowKey, userId, name, age)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建schema</span></span><br><span class="line">    val schema = StructType(</span><br><span class="line">      StructField(<span class="string">&quot;user_id&quot;</span>, IntegerType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;name&quot;</span>, StringType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;age&quot;</span>, IntegerType, <span class="keyword">true</span>) :: Nil)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//RDD转为DataFrame</span></span><br><span class="line">    val df = spark.createDataFrame(rdd1, schema)</span><br><span class="line">    </span><br><span class="line">    df.select(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Spark写HBase"><a href="#Spark写HBase" class="headerlink" title="Spark写HBase"></a>Spark写HBase</h1><h2 id="1-saveAsNewAPIHadoopFile-API"><a href="#1-saveAsNewAPIHadoopFile-API" class="headerlink" title="1. saveAsNewAPIHadoopFile API"></a>1. saveAsNewAPIHadoopFile API</h2><p>实现代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.&#123;HFileOutputFormat2, TableInputFormat&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, KeyValue&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Dataset, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">writeHBase</span><span class="params">(spark: SparkSession, datasetJson: Dataset[String])</span>: Unit </span>= &#123;</span><br><span class="line">    \<span class="comment">//假设datasetJson是一个json字符串类型的Dataset, 其结构为&quot;&#123;&quot;name&quot;:&quot;&quot;, &quot;age&quot;:&quot;&quot;, &quot;phone&quot;:&quot;&quot;, &quot;address&quot;:&quot;&quot;, &#125;&quot;</span></span><br><span class="line">    val ds = spark.read.json(datasetJson)</span><br><span class="line">    </span><br><span class="line">    val rdd = ds.rdd.mapPartitions(iterator =&gt; &#123;</span><br><span class="line">        iterator.map(m =&gt; &#123;</span><br><span class="line">            val json = JSON.parseObject(m.toString()) <span class="comment">//json字符串解析成JSONObject</span></span><br><span class="line">            val phone = json.getString(<span class="string">&quot;phone&quot;</span>) <span class="comment">//phone作为KeyValue的row key</span></span><br><span class="line">            json.remove(<span class="string">&quot;phone&quot;</span>) <span class="comment">//以便遍历其他所有键值对</span></span><br><span class="line"></span><br><span class="line">            val writable = <span class="keyword">new</span> ImmutableBytesWritable(Bytes.toBytes(phone)) <span class="comment">//键值对字节序列</span></span><br><span class="line">            val array = ArrayBuffer[(ImmutableBytesWritable, KeyValue)]() <span class="comment">//初始化数组, 存储JSONObject中的键值对</span></span><br><span class="line">            </span><br><span class="line">			<span class="comment">//JSON中的key作为Hbase表中的列名，并按字典序排序</span></span><br><span class="line">            val jsonKeys = json.keySet().toArray.map(_.toString).sortBy(x =&gt; x) </span><br><span class="line"></span><br><span class="line">            val length = jsonKeys.length</span><br><span class="line">            <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) &#123;</span><br><span class="line">                val key = jsonKeys(i)</span><br><span class="line">                val value = json.get(jsonKeys(i)).toString</span><br><span class="line">                <span class="comment">//KeyValue为HBase中的基本类型Key/Value。</span></span><br><span class="line">                <span class="comment">//构造函数中的参数依次为：rowkey、列族、列名、值。</span></span><br><span class="line">                <span class="comment">//Json对象中的每个key和其值构成HBase中每条记录的value</span></span><br><span class="line">                val keyValue: KeyValue = <span class="keyword">new</span> KeyValue(</span><br><span class="line">                    Bytes.toBytes(phone),  <span class="comment">//row key</span></span><br><span class="line">                    <span class="string">&quot;cf&quot;</span>.getBytes(), <span class="comment">//列族名</span></span><br><span class="line">                    key.getBytes(), <span class="comment">//列名</span></span><br><span class="line">                    value.getBytes()) <span class="comment">//列的值</span></span><br><span class="line"></span><br><span class="line">                array += ((writable, keyValue))</span><br><span class="line">            &#125;</span><br><span class="line">            array</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="comment">//重新分区，减少保存的文件数</span></span><br><span class="line">        <span class="comment">//展开数组中的元素</span></span><br><span class="line">        <span class="comment">//对rowkey排序</span></span><br><span class="line">    &#125;).repartition(<span class="number">1</span>).flatMap(x =&gt; x).sortByKey()</span><br><span class="line"></span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    val job = Job.getInstance(config)</span><br><span class="line">    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])</span><br><span class="line">    job.setMapOutputValueClass(classOf[KeyValue])</span><br><span class="line"></span><br><span class="line">    <span class="comment">//持久化到HBase表</span></span><br><span class="line">    rdd.saveAsNewAPIHadoopFile(<span class="string">&quot;/tmp/test&quot;</span>,</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[KeyValue],</span><br><span class="line">        classOf[HFileOutputFormat2],</span><br><span class="line">        job.getConfiguration)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-BulkLoad功能"><a href="#2-BulkLoad功能" class="headerlink" title="2. BulkLoad功能"></a>2. BulkLoad功能</h2><p>在将大批量数据离线导入HBase系统的场景中，不管是使用Put单条插入还是Put批量插入HBase，效率都不理想，还可能占用大量带宽资源，导致其他业务程序运行变慢。这个时候就可以考虑使用Bulk Load，Bulk Load使用MapReduce将待写入数据转换成HFile文件，再直接将这些HFile文件加载到集群中，BulkLoad并没有将写入请求发送给RegionServer，不会占用太多集群资源，效率极高。</p>
+<p>BulkLoad实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.ConnectionFactory</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, TableName&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.&#123;ByteArrayWrapper, FamiliesQualifiersValues, FamilyHFileWriteOptions, HBaseContext&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;DataFrame, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.HBaseRDDFunctions._</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">handle</span><span class="params">(spark: SparkSession, df: DataFrame, key: String, source: String, stagingDir: String)</span>: Unit </span>= &#123;</span><br><span class="line">	val sc = spark.sparkContext</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//使用HBase资源创建一个Configuration</span></span><br><span class="line">	val config = HBaseConfiguration.create()</span><br><span class="line">	\<span class="comment">//Zookeeper节点, 端口号</span></span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.quorum&quot;</span>, <span class="string">&quot;node-3,node-4,node-5&quot;</span>)</span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.property.clientPort&quot;</span>, <span class="string">&quot;2181&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//初始化HbaseContext</span></span><br><span class="line">	val hbaseContext = <span class="keyword">new</span> HBaseContext(sc, config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//DataFrame中的列名</span></span><br><span class="line">	val columns = df.columns</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase表</span></span><br><span class="line">	val tableName = TableName.valueOf(<span class="string">&quot;hbase_table_name&quot;</span>)</span><br><span class="line">	val conn = ConnectionFactory.createConnection(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase column family</span></span><br><span class="line">	val columnFamily: Array[Byte] = Bytes.toBytes(<span class="string">&quot;cf&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase bulk load对于那些少于1000个列短row的Spark实现</span></span><br><span class="line">	df.rdd.hbaseBulkLoadThinRows(</span><br><span class="line">		hbaseContext,</span><br><span class="line">		tableName, \<span class="comment">//要加载进数据的表</span></span><br><span class="line">		t =&gt; &#123; \<span class="comment">//一个要将RDD records转化成key value格式的函数</span></span><br><span class="line">			\<span class="comment">//rowKey</span></span><br><span class="line">			val rowKey = t.getAs(key).toString</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//保存并排序将要bulk load到单个row中的所有cells</span></span><br><span class="line">			val familyQualifiersValues = <span class="keyword">new</span> FamiliesQualifiersValues</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//遍历所有列</span></span><br><span class="line">			columns.foreach(c =&gt; &#123;</span><br><span class="line">				val qualifier = Bytes.toBytes(c) \<span class="comment">//HBase column qualifier</span></span><br><span class="line">				val value: Array[Byte] = Bytes.toBytes(t.getAs(c).toString) \<span class="comment">//HBase cell value</span></span><br><span class="line"></span><br><span class="line">				\<span class="comment">//添加一个新的cell到一个已存在的row</span></span><br><span class="line">				familyQualifiersValues.+=(columnFamily, qualifier, value)</span><br><span class="line">			&#125;)</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//添加字段(字段表示数据来源)</span></span><br><span class="line">			familyQualifiersValues.+=(columnFamily, Bytes.toBytes(<span class="string">&quot;source&quot;</span>), Bytes.toBytes(source))</span><br><span class="line"></span><br><span class="line">			(<span class="keyword">new</span> ByteArrayWrapper(Bytes.toBytes(rowKey)), familyQualifiersValues)</span><br><span class="line">		&#125;,</span><br><span class="line">		stagingDir, \<span class="comment">//要load到文件系统的路径</span></span><br><span class="line">		<span class="keyword">new</span> util.HashMap[Array[Byte], FamilyHFileWriteOptions], \<span class="comment">//一个选项, 可以设置列族写入HFile的方式(compression, bloomType, blockSize, dataBlockEncoding)</span></span><br><span class="line">		compactionExclude = <span class="keyword">false</span> \<span class="comment">//Compaction excluded for the HFiles</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//加载HFileOutputFormat的输出到一个已存在的表</span></span><br><span class="line">	val load = <span class="keyword">new</span> LoadIncrementalHFiles(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//将指定目录下的数据load到指定的表</span></span><br><span class="line">	load.doBulkLoad(<span class="keyword">new</span> Path(stagingDir),</span><br><span class="line">		conn.getAdmin,</span><br><span class="line">		conn.getTable(tableName),</span><br><span class="line">		conn.getRegionLocator(tableName)</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h1><p>spark-submit提交任务时需要依赖的第三方jar包：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastjson-1.2.62.jar</span><br><span class="line">hbase-protocol-1.2.0.jar</span><br><span class="line">hbase-common-1.2.0.jar</span><br><span class="line">hbase-spark-1.2.0-cdh5.16.2.jar</span><br><span class="line">hbase-client-1.2.0.jar</span><br><span class="line">hbase-server-1.2.0.jar</span><br><span class="line">htrace-core-3.1.0-incubating.jar</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>HBase</tag>
+      </tags>
   </entry>
   <entry>
     <title>Spark Connector连接器之整合读写Phoenix</title>
@@ -825,7 +967,40 @@
   <entry>
     <title>Spark connector连接器之整合读写MySQL及问题汇总</title>
     <url>/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>Spark主要是以JDBC驱动的方式读写MySQL的。在提交Spark作业时别忘记了打包驱动包mysql-connector-java-5.1.47.jar(用合适自己项目的版本)。</p>
+<a id="more"></a>
+
+<h2 id="Spark读取MySQL表可选配置参数"><a href="#Spark读取MySQL表可选配置参数" class="headerlink" title=" Spark读取MySQL表可选配置参数"></a><center> <font color="blue">Spark读取MySQL表可选配置参数</h2><p>详见: <a href="https://spark.apache.org/docs/latest/sql-data-sources-jdbc.html">https://spark.apache.org/docs/latest/sql-data-sources-jdbc.html</a></p>
+<h2 id="Spark读取MySQL表"><a href="#Spark读取MySQL表" class="headerlink" title=" Spark读取MySQL表"></a><center> <font color="blue">Spark读取MySQL表</h2><p>Spark提供了两种(并行)读MySQL的方式：基于整型列并行读取和基于范围并行读取。</p>
+<h5 id="1-基于整型列设置并行度"><a href="#1-基于整型列设置并行度" class="headerlink" title="1. 基于整型列设置并行度"></a>1. 基于整型列设置并行度</h5><p>先上代码，对着代码再做详细的解释：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">def <span class="title">readByIntegralColumn</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val options = Map(</span><br><span class="line">        <span class="string">&quot;url&quot;</span> -&gt; <span class="string">&quot;jdbc:mysql://host:3306/dbName&quot;</span>, <span class="comment">// jdbc的url</span></span><br><span class="line">        <span class="string">&quot;dbtable&quot;</span> -&gt; <span class="string">&quot;tableName&quot;</span>, <span class="comment">//MySQL表名</span></span><br><span class="line">        <span class="string">&quot;user&quot;</span> -&gt; <span class="string">&quot;userName&quot;</span>, <span class="comment">//用户名</span></span><br><span class="line">        <span class="string">&quot;password&quot;</span> -&gt; <span class="string">&quot;passwd&quot;</span>, <span class="comment">//密码</span></span><br><span class="line">        <span class="string">&quot;driver&quot;</span> -&gt; <span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>, <span class="comment">//驱动</span></span><br><span class="line">        <span class="string">&quot;partitionColumn&quot;</span> -&gt; <span class="string">&quot;id&quot;</span>, <span class="comment">//被用来分区的整型列</span></span><br><span class="line">        <span class="string">&quot;lowerBound&quot;</span> -&gt; <span class="string">&quot;1&quot;</span>, <span class="comment">//要读取的整型列的下界(包含下界)</span></span><br><span class="line">        <span class="string">&quot;UpperBound&quot;</span> -&gt; <span class="string">&quot;400000&quot;</span>, <span class="comment">//要读取的整型列的上界(不包含上界)</span></span><br><span class="line">        <span class="string">&quot;numPartitions&quot;</span> -&gt; <span class="string">&quot;10&quot;</span> <span class="comment">//分区数</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    spark.read</span><br><span class="line">        .format(<span class="string">&quot;jdbc&quot;</span>)</span><br><span class="line">        .options(options)</span><br><span class="line">        .load()</span><br><span class="line">        .write</span><br><span class="line">        .saveAsTable(<span class="string">&quot;dbName.tableName&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码中，要读取MySQL中id值从1到400000的行，并划分10个分区，每个分区平均读取40000条记录。</p>
+<h5 id="2-基于范围设置并行度"><a href="#2-基于范围设置并行度" class="headerlink" title="2. 基于范围设置并行度"></a>2. 基于范围设置并行度</h5><p>同样先上代码，对着代码再做详细的解释：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">def <span class="title">readByRange</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">	<span class="comment">//用户名和密码</span></span><br><span class="line">    val prop = <span class="keyword">new</span> Properties()</span><br><span class="line">    prop.put(<span class="string">&quot;user&quot;</span>, <span class="string">&quot;userName&quot;</span>)</span><br><span class="line">    prop.put(<span class="string">&quot;password&quot;</span>, <span class="string">&quot;passwd&quot;</span>)</span><br><span class="line"></span><br><span class="line">    val url = <span class="string">&quot;jdbc:mysql://host:3306//dbName&quot;</span> <span class="comment">//url</span></span><br><span class="line">    val table = <span class="string">&quot;tableName&quot;</span> <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//predicates参数就相当于在where表达式中的范围, 有几个范围就有几个分区进行并行读取</span></span><br><span class="line">    val predicates = Array[String](</span><br><span class="line">        <span class="string">&quot;created_at &lt; &#x27;2018-08-01 00:00:00&#x27;&quot;</span>,</span><br><span class="line">        <span class="string">&quot;created_at &gt;= &#x27;2018-08-01 00:00:00&#x27; &amp;&amp; created_at &lt; &#x27;2018-10-01 00:00:00&#x27;&quot;</span>,</span><br><span class="line">        <span class="string">&quot;created_at &gt;= &#x27;2018-10-01 00:00:00&#x27;&quot;</span>)</span><br><span class="line"></span><br><span class="line">    spark.read</span><br><span class="line">        .jdbc(url, table, predicates, prop)</span><br><span class="line">        .write.saveAsTable(<span class="string">&quot;dbName.tableName&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码中，基于MySQL中记录的创建时间来划分分区，predicates中设置的范围区间数就是分区数。当然，也可以是使用其他任何可以进行区间查询的列来设置分区数。</p>
+<p>注意：<font color=red><strong>不要在集群上并行创建太多分区，否则可能会给MySQL产生很大的访问压力，甚至可能会导致数据库系统崩溃</strong></font></p>
+<h2 id="Spark写入MySQL表"><a href="#Spark写入MySQL表" class="headerlink" title=" Spark写入MySQL表"></a><center> <font color="blue">Spark写入MySQL表</h2><p>Spark写MySQL比较简单，直接看代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">def <span class="title">writeMySQL</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val host = <span class="string">&quot;hostname&quot;</span> <span class="comment">//MySQL服务器地址</span></span><br><span class="line">    val port = <span class="string">&quot;3306&quot;</span> <span class="comment">//端口号</span></span><br><span class="line">    val userName = <span class="string">&quot;userName&quot;</span> <span class="comment">//用户名</span></span><br><span class="line">    val password = <span class="string">&quot;password&quot;</span> <span class="comment">//访问密码</span></span><br><span class="line">    val dbName = <span class="string">&quot;dbName&quot;</span> <span class="comment">//库名</span></span><br><span class="line">    val jdbcUrl = s<span class="string">&quot;jdbc:mysql://$&#123;host&#125;:$&#123;port&#125;/$&#123;dbName &#125;&quot;</span> <span class="comment">//jdbc url</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">import</span> java.util.Properties</span><br><span class="line">    val prop = <span class="keyword">new</span> Properties()</span><br><span class="line">    prop.put(<span class="string">&quot;user&quot;</span>, userName)</span><br><span class="line">    prop.put(<span class="string">&quot;password&quot;</span>, password)</span><br><span class="line"></span><br><span class="line">    spark.read.table(<span class="string">&quot;db.test&quot;</span>)</span><br><span class="line">            .coalesce(<span class="number">10</span>) <span class="comment">//调节写入并行度(增加并行度要用repartition(n))</span></span><br><span class="line">            .write</span><br><span class="line">            .mode(<span class="string">&quot;append&quot;</span>) <span class="comment">//追加写入()</span></span><br><span class="line">            .jdbc(jdbcUrl, <span class="string">&quot;test&quot;</span>, prop)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>写入的时候需要注意并行度，以免给MySQL带来太大写入压力。</p>
+<h2 id="Spark读写MySQL问题汇总"><a href="#Spark读写MySQL问题汇总" class="headerlink" title=" Spark读写MySQL问题汇总"></a><center> <font color="blue">Spark读写MySQL问题汇总</h2><h5 id="1-Spark写MySQL覆盖表结构问题"><a href="#1-Spark写MySQL覆盖表结构问题" class="headerlink" title="1. Spark写MySQL覆盖表结构问题"></a>1. Spark写MySQL覆盖表结构问题</h5><p><font color="red"><strong>问题</strong></font>：你在MySQL中创建了一个表user，现在你要通过Spark将DataFrame中的数据写入到表user中，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">df</span><br><span class="line">    .coalesce(<span class="number">2</span>)</span><br><span class="line">    .write</span><br><span class="line">    .mode(<span class="string">&quot;overwrite&quot;</span>)</span><br><span class="line">    .jdbc(<span class="string">&quot;url&quot;</span>, <span class="string">&quot;db.user&quot;</span>, props)</span><br></pre></td></tr></table></figure>
+
+<p><font color="red"><strong>原因分析</strong></font>：因为每次都是要覆盖之前表中的所有数据，所以写入mode类型为overwrite。而overwrite模式的底层执行机制是，先把之前的表user删掉(drop table db.user)，然后再根据要写入的DataFrame的schema及字段类型创建新的表，这就造成你原来的建表语句就失效了(比如，之前指定的主键、字段类型等都被覆盖了)。</p>
+<p>造成这个问题的原因就是，DataFrame在写MySQL的时候，有一个选项”truncate”, 默认值是false, false情况下覆盖写(overwrite)是执行”drop table”，而true情况下覆盖写才会执行”truncate table”。</p>
+<p><font color="red"><strong>解决方法</strong></font>：将选项”truncate”设置为true即可，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">df</span><br><span class="line">    .coalesce(<span class="number">2</span>)</span><br><span class="line">    .write</span><br><span class="line">    .option(<span class="string">&quot;truncate&quot;</span>, <span class="string">&quot;true&quot;</span>)</span><br><span class="line">    .mode(<span class="string">&quot;overwrite&quot;</span>)</span><br><span class="line">    .jdbc(<span class="string">&quot;url&quot;</span>, <span class="string">&quot;db.user&quot;</span>, props)</span><br></pre></td></tr></table></figure>
+<h5 id="2-Spark读MySQL写Hive，boolean-true、false-类型自动转成了0和1"><a href="#2-Spark读MySQL写Hive，boolean-true、false-类型自动转成了0和1" class="headerlink" title="2. Spark读MySQL写Hive，boolean(true、false)类型自动转成了0和1"></a>2. Spark读MySQL写Hive，boolean(true、false)类型自动转成了0和1</h5><p><font color="red"><strong>问题</strong></font>：当MySQL中某个列表示的是tinyint(1)的Boolean类型时(true或false)，写到Hive后，查询显示的是1或0。</p>
+<p><font color="red"><strong>原因分析</strong></font>：因为MySQL没有内建的Boolean类型，而是通过tinyint(1)来代替Boolean类型的，0代表false，1代表true。所以，当你往MySQL中插入true或false的时候，MySQL会自动转换成1或0进行存储。因此，当你从MySQL表读取true和false的时候，其实读取的是1和0，那么写入到Hive之后也是1和0。</p>
+<p><font color="red"><strong>解决方法</strong></font>：在jdbc url中配置参数tinyInt1isBit=false，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">url=jdbc:mysql:<span class="comment">//hostname:3306/dbname?tinyInt1isBit=false</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>MySQL</tag>
+      </tags>
   </entry>
   <entry>
     <title>Spark中一行代码转换DataFrame所有列的类型</title>
@@ -958,17 +1133,67 @@
   <entry>
     <title>YARN/Hadoop/HDFS常用命令</title>
     <url>/2020/10/11/YARN-Hadoop-HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual C++ 14.0 is required</title>
-    <url>/2020/10/11/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual-C-14-0-is-required/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>pyspark中遇到的坑 (持续更新)</title>
-    <url>/2020/10/11/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>文件系统(FS)shell包含了一系列的与shell相似的命令，很多都对应着Unix中的命令，这些命令可以直接与Hadoop分布式文件系统(HDFS)以及Hadoop支持的其他文件系统，如本地FS、HFTP、S3等进行交互。可以通过如下方法调用：<code>bin/hadoop fs &lt;args&gt;</code>。args都是以路径URI作为参数，本篇文章都是基于HDFS来介绍说明的。</p>
+<a id="more"></a>
+
+<p>一个HDFS中的文件或目录的格式大致是这样：<code>hdfs://namenodehost/test/a.txt</code>。namenodehost即为NameNode节点的主机名。如果你的Hadoop安装目录../hadoop/etc/hadoop/core-site.xml的文件中有如下配置，那么在操作一个文件或目录时，可以省掉前缀，即/test/a.txt。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://namenodehost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="YARN命令"><a href="#YARN命令" class="headerlink" title="YARN命令"></a>YARN命令</h1><h3 id="yarn-application"><a href="#yarn-application" class="headerlink" title="yarn application"></a>yarn application</h3><ul>
+<li>yarn application -list  appID<br>查看正在运行的yarn任务列表</li>
+<li>yarn application -kill  appID<br>kill掉指定id的yarn任务<h3 id="yarn-logs"><a href="#yarn-logs" class="headerlink" title="yarn logs"></a>yarn logs</h3></li>
+<li>yarn logs -applicationId  appID<br>如果日志聚合被开启(yarn.log-aggregation-enable), container日志会被拷贝到HDFS上，同时删除本地的日志。这些日志可以在集群的任何地方使用yarn logs命令查看。注意只有在任务结束之后才能用此命令查看任务日志信息。</li>
+</ul>
+<h1 id="Hadoop命令"><a href="#Hadoop命令" class="headerlink" title="Hadoop命令"></a>Hadoop命令</h1><h3 id="ls"><a href="#ls" class="headerlink" title="ls"></a>ls</h3><p>返回指定文件或指定目录下所有文件的权限、副本数、所属用户组等信息。</p>
+<p>示例：hadoop fs -ls /test/</p>
+<h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><p>显示文件内容到标准输出。</p>
+<p>示例：<br>hadoop fs -cat /test/src.txt 显示文件src.txt的所有内容<br>hadoop fs -cat /test/src.txt | less 对于内容较多的文件可以用less上下翻页</p>
+<h3 id="cp"><a href="#cp" class="headerlink" title="cp"></a>cp</h3><p>拷贝文件从源地址到目标地址。允许拷贝一次拷贝多个文件到目标目录下。</p>
+<p>示例：hadoop fs -cp /test/src.txt /test/des.txt拷贝时可以改变文件名</p>
+<h3 id="mv"><a href="#mv" class="headerlink" title="mv"></a>mv</h3><p>将文件或目录从源地址移动到目标地址。</p>
+<p>示例：hadoop fs -mv /test/src.txt /test2/</p>
+<h3 id="touchz"><a href="#touchz" class="headerlink" title="touchz"></a>touchz</h3><p>创建一个空文件。</p>
+<p>示例：hadoop fs -touchz /test/src.txt</p>
+<h3 id="mkdir"><a href="#mkdir" class="headerlink" title="mkdir"></a>mkdir</h3><p>创建目录。</p>
+<p>示例：<br>hadoop fs -mkdir /test/dir创建目录dir<br>hadoop fs -mkdir -p /test/dir1/dir2/dir3递归地创建dir1、dir2和dir3</p>
+<h3 id="rm"><a href="#rm" class="headerlink" title="rm"></a>rm</h3><p>删除指定的文件。</p>
+<p>示例：<br>hadoop fs -rm /test/des.txt删除文件des.txt<br>hadoop fs -rm -r /test递归地删除test目录以及test下面的所有目录和文件(<font color=red><strong>慎用啊！</strong></font>)。</p>
+<h3 id="rmr"><a href="#rmr" class="headerlink" title="rmr"></a>rmr</h3><p>递归地删除文件和目录。此命令已被弃用，代替使用-rm -r。</p>
+<h3 id="rmdir"><a href="#rmdir" class="headerlink" title="rmdir"></a>rmdir</h3><p>删除指定目录。</p>
+<p>示例：hadoop fs -rmdir /test</p>
+<h3 id="get"><a href="#get" class="headerlink" title="get"></a>get</h3><p>拷贝HDFS中的文件到本地文件系统。</p>
+<p>示例：hadoop fs -get /test/src.txt . 拷贝src.txt文件到本地文件系统的当前目录下</p>
+<h3 id="put"><a href="#put" class="headerlink" title="put"></a>put</h3><p>拷贝本地文件系统中的文件到HDFS上。</p>
+<p>示例：hadoop fs -put src.txt /test/</p>
+<h3 id="copyFromLocal"><a href="#copyFromLocal" class="headerlink" title="copyFromLocal"></a>copyFromLocal</h3><p>功能和put类似，除了要求源文件一定要是本地文件。</p>
+<h3 id="copyToLocal"><a href="#copyToLocal" class="headerlink" title="copyToLocal"></a>copyToLocal</h3><p>功能和get类似，除了目标文件要是本地文件引用。</p>
+<h3 id="moveFromLocal"><a href="#moveFromLocal" class="headerlink" title="moveFromLocal"></a>moveFromLocal</h3><p>功能类似put，除了拷贝之后会删除源文件。</p>
+<h3 id="moveToLocal"><a href="#moveToLocal" class="headerlink" title="moveToLocal"></a>moveToLocal</h3><p>目前无法使用，执行命令会显示 “Not implemented yet” 。</p>
+<h3 id="df"><a href="#df" class="headerlink" title="df"></a>df</h3><p>显示文件系统空间占用情况。</p>
+<p>示例：hadoop fs -df -h /test/src.txt<br>Filesystem SizeUsedAvailableUse%<br>hdfs://nnhost5T 2.1T 2.9T42%</p>
+<h3 id="du"><a href="#du" class="headerlink" title="du"></a>du</h3><p>显示文件大小，或者目录中所有文件大小。</p>
+<p>示例：<br>hadoop fs -du -h /test/src.txt显示文件大小<br>hadoop fs -du -h /test/依次显示目录下所有文件的大小</p>
+<h3 id="find"><a href="#find" class="headerlink" title="find"></a>find</h3><p>显示指定目录下匹配指定表达式的所有文件。</p>
+<p>示例：hadoop fs -find /test -name “*.txt”显示/test目录下所有以.txt结尾的文件</p>
+<h3 id="count"><a href="#count" class="headerlink" title="count"></a>count</h3><p>依次显示URI下面的总的目录数、文件数和字节数。</p>
+<p>示例：hadoop fs -count /test/<br>目录数文件数字节数<br>50000 10000 409600000</p>
+<h3 id="tail"><a href="#tail" class="headerlink" title="tail"></a>tail</h3><p>显示文件的最后一kb到标准输出。</p>
+<p>示例：hadoop fs -tail /test/src.txt</p>
+<h3 id="chmod"><a href="#chmod" class="headerlink" title="chmod"></a>chmod</h3><p>修改文件的权限。</p>
+<p>示例：<br>hadoop fs -chmod 744 /test/src.txt修改文件src.txt的权限为r+w+x<br>hadoop fs -chmod -R 744 /test/递归地修改test目录及其子目录下所有文件的权限</p>
+<h3 id="chown"><a href="#chown" class="headerlink" title="chown"></a>chown</h3><p>修改文件所属的用户</p>
+<p>示例：hadoop fs -chown [-R] owner:group /test/src.txt</p>
+<h3 id="checksum"><a href="#checksum" class="headerlink" title="checksum"></a>checksum</h3><p>查看文件的校验信息。</p>
+<p>示例：hadoop fs -checksum /test/src.txt</p>
+]]></content>
+      <categories>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Hadoop</tag>
+        <tag>Yarn</tag>
+        <tag>HDFS</tag>
+      </tags>
   </entry>
   <entry>
     <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
@@ -1003,9 +1228,26 @@
       </tags>
   </entry>
   <entry>
-    <title>单词统计WordCount (Scala/Python/Java)</title>
+    <title>Spark实现单词统计WordCount (Scala/Python/Java)</title>
     <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>入门Spark的第一个小例子就是编写一个简单的WordCount程序，来统计一个文件中每个单词的个数。接下来分别是用Scala、Python和Java三种语言来实现WordCount的代码，都是基于<strong>Spark2.0+版本</strong>和<strong>本地local模式</strong>。</p>
+<a id="more"></a>
+
+<h1 id="编程语言选择"><a href="#编程语言选择" class="headerlink" title="编程语言选择"></a>编程语言选择</h1><p><strong>首先</strong>，推荐使用Scala，因为Spark的底层源码主要是基于Scala编写的，对Scala的支持最友好，而且Scala这种函数式编程语言编写代码比较简洁，建议首选Scala。</p>
+<p><strong>其次</strong>，推荐使用Python编写Spark应用程序，但是性能会稍差，而且Spark的新功能对Python的支持也稍差。如果要用编写机器学习程序，建议使用Python，因为Python提供了丰富的类库。</p>
+<p><strong>最后</strong>，才推荐使用Java，因为代码写起来是在太冗余了，不过Spark对Java的支持要比Python好的多。</p>
+<p>当然你也可以用R语言，不过支持是最差的。</p>
+<h1 id="Scala实现"><a href="#Scala实现" class="headerlink" title="Scala实现"></a>Scala实现</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object ScalaWordCount &#123;</span><br><span class="line">    <span class="function">def <span class="title">main</span><span class="params">(args: Array[String])</span>: Unit </span>= &#123;</span><br><span class="line">        <span class="comment">// SparkSession实例, 也就是Spark任务的入口</span></span><br><span class="line">        val spark = SparkSession</span><br><span class="line">            .builder()</span><br><span class="line">            .appName(<span class="string">&quot;ScalaWordCount&quot;</span>)</span><br><span class="line">            .master(<span class="string">&quot;local[4]&quot;</span>) <span class="comment">// 本地模式, 使用4个cpu cores</span></span><br><span class="line">            .getOrCreate()</span><br><span class="line"></span><br><span class="line">        <span class="comment">//读取本地的一个txt文件, 里面是随意copy进去的一些英文文章片段</span></span><br><span class="line">        val lines = spark.sparkContext.textFile(<span class="string">&quot;F:\\Files\\WordCount.txt&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 文章中的单词都是以空格分隔的,</span></span><br><span class="line">        <span class="comment">// flatMap函数的作用就是对文件中的每一行单词以空格来分隔,</span></span><br><span class="line">        <span class="comment">// 得到是摊平的每个独立的单词, 如果打印出来的话就是每行一个单词。</span></span><br><span class="line">        val words = lines.flatMap(_.split(<span class="string">&quot; &quot;</span>))</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将每个单词转换成key-value对, value都是1,</span></span><br><span class="line">        <span class="comment">// 例如：spark 转换成 (spark, 1)。</span></span><br><span class="line">        val ones = words.map(m =&gt; (m, <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 根据key进行聚合, 对于相同的key, 将其对应的value相加。</span></span><br><span class="line">        val counts = ones.reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 打印结果, 可以看到文件中每个单词的个数</span></span><br><span class="line">        counts.foreach(f =&gt; &#123;</span><br><span class="line">            println(f._1 +<span class="string">&quot;: &quot;</span>+ f._2)</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 或者也可以保存到一个文件中。</span></span><br><span class="line">        <span class="comment">//counts.coalesce(1).saveAsTextFile(&quot;F:\\Files\\WordCountResult.txt&quot;)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 关闭SparkSession</span></span><br><span class="line">        spark.close()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"><span class="keyword">from</span> operator <span class="keyword">import</span> add</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    spark = SparkSession\</span><br><span class="line">        .builder\</span><br><span class="line">        .appName(<span class="string">&quot;python word count&quot;</span>)\</span><br><span class="line">        .master(<span class="string">&#x27;local[4]&#x27;</span>)\</span><br><span class="line">        .getOrCreate()</span><br><span class="line"></span><br><span class="line">    lines = spark.sparkContext.textFile(<span class="string">&#x27;F:\\Files\\WordCount.txt&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># lambda函数以空格分隔每行单词</span></span><br><span class="line">    words = lines.flatMap(<span class="keyword">lambda</span> x: x.split(<span class="string">&#x27; &#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Python中也是元组Tuple</span></span><br><span class="line">    ones = words.map(<span class="keyword">lambda</span> x: (x, <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 需要用到add这个求和函数</span></span><br><span class="line">    counts = ones.reduceByKey(add)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 打印结果</span></span><br><span class="line">    counts.foreach(<span class="keyword">lambda</span> x: print(str(x[<span class="number">0</span>]) + <span class="string">&#x27;: &#x27;</span> + str(x[<span class="number">1</span>])))</span><br><span class="line"></span><br><span class="line">    spark.stop()</span><br></pre></td></tr></table></figure>
+
+<h1 id="Java实现"><a href="#Java实现" class="headerlink" title="Java实现"></a>Java实现</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaPairRDD;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaRDD;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</span><br><span class="line"><span class="keyword">import</span> scala.Tuple2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaWordCount</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SparkSession spark = SparkSession</span><br><span class="line">            .builder()</span><br><span class="line">            .appName(<span class="string">&quot;JavaWordCount&quot;</span>)</span><br><span class="line">            .master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">            .getOrCreate();</span><br><span class="line"></span><br><span class="line">        JavaRDD&lt;String&gt; lines = spark.sparkContext()</span><br><span class="line">            .textFile(<span class="string">&quot;F:\\Files\\WordCount.txt&quot;</span>, <span class="number">2</span>) <span class="comment">//要给一个分区数</span></span><br><span class="line">            .toJavaRDD();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 以空格分隔每行单词</span></span><br><span class="line">        JavaRDD&lt;String&gt; words = lines</span><br><span class="line">            .flatMap(s -&gt; Arrays.asList(s.split(<span class="string">&quot; &quot;</span>)).iterator());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将每个单词转换成元组Tuple(其实就是key-value对)</span></span><br><span class="line">        JavaPairRDD&lt;String, Integer&gt; ones = words.mapToPair(s -&gt; <span class="keyword">new</span> Tuple2&lt;&gt;(s, <span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 以key聚合求值</span></span><br><span class="line">        JavaPairRDD&lt;String, Integer&gt; counts = ones.reduceByKey((i1, i2) -&gt; i1 + i2);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 打印结果</span></span><br><span class="line">        counts.foreach(f -&gt; System.out.println(f._1 +<span class="string">&quot;: &quot;</span>+ f._2));</span><br><span class="line"></span><br><span class="line">        spark.stop();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
   </entry>
   <entry>
     <title>手把手教你维度数据建模</title>
@@ -1168,7 +1410,20 @@
   <entry>
     <title>本地Spark连接远程集群Hive(Scala/Python)</title>
     <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
+<a id="more"></a>
+
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
+<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
+<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
+<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
+]]></content>
       <categories>
         <category>Spark</category>
       </categories>
@@ -1277,5 +1532,55 @@
       <tags>
         <tag>Spark性能优化</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual</title>
+    <url>/2020/10/12/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>这个问题是在Windows7上安装pyhive时遇到的。因为安装 pyhive 要依赖 sasl 模块，在pip install sasl 时报错 “缺少Microsoft Visual C++编译器” 。</p>
+<a id="more"></a>
+
+<p><strong><font color=red, size=4>以下是在执行 pip install sasl 时出现的一系列问题以及解决方法</font></strong></p>
+<h2 id="1-问题一：error-Microsoft-Visual-C-14-0-is-required"><a href="#1-问题一：error-Microsoft-Visual-C-14-0-is-required" class="headerlink" title="1. 问题一：error: Microsoft Visual C++ 14.0 is required"></a>1. 问题一：error: Microsoft Visual C++ 14.0 is required</h2><p>报错信息：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">error: Microsoft Visual C++ <span class="number">14.0</span> <span class="keyword">is</span> required. Get it <span class="keyword">with</span> <span class="string">&quot;Microsoft Visual C++ Build Tools&quot;</span>: </span><br><span class="line">https://visualstudio.microsoft.com/downloads.</span><br></pre></td></tr></table></figure>
+
+<p>原因：<br>虽然Python是一种解释性语言，但是在某些情况下可能需要安装Windows C++编译器。与Linux不同的是，Windows编译器在默认情况下是不包含在操作系统中的。这就需要我们自己安装了。微软提供了官方的C++编译器Visual C++，它是和Visual Studio捆绑在一起的。那么我们最终选择一个包含Visual C++ 14.0的Visual Studio来安装，这里选择的是Visual Studio 2017的版本。</p>
+<p><font color=red>注意：在安装Visual Studio 2017之前，建议先更新 pip install –upgrade setuptools。官方说是它包含兼容性的改进和添加编译器的自动使用。</font></p>
+<h3 id="解决方案：安装Microsoft-Visual-Studio"><a href="#解决方案：安装Microsoft-Visual-Studio" class="headerlink" title="解决方案：安装Microsoft Visual Studio"></a>解决方案：安装Microsoft Visual Studio</h3><h4 id="1-下载"><a href="#1-下载" class="headerlink" title="1. 下载"></a>1. 下载</h4><p>官方下载地址：<a href="https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14">https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14</a> 。 打开网址后，下载免费的社区版本即可。</p>
+<p><img src="01.png" alt="alt"></p>
+<h4 id="2-安装"><a href="#2-安装" class="headerlink" title="2. 安装"></a>2. 安装</h4><p>安装时，注意要勾选的选项，”工作负载” ——&gt; Windows一栏勾选 “使用 C++ 的桌面开发” 、Web和云一栏勾选Python开发，如下：</p>
+<p><img src="02.png" alt="alt"></p>
+<p>要下载的文件比较大，有7G左右，耗时较长。其他步骤默认即可。</p>
+<h2 id="2-问题二：ImportError-DLL-load-failed"><a href="#2-问题二：ImportError-DLL-load-failed" class="headerlink" title="2. 问题二：ImportError: DLL load failed"></a>2. 问题二：ImportError: DLL load failed</h2><p>问题一处理之后，再次安装sasl时，你可能会继续遇到第二个问题：ImportError: DLL load failed: 找不到指定的程序。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>用Python安装根目录下的 python3.dll 文件替换PyCharm工程\venv\Scripts目录下的同名文件。具体原因不太明确，可能是要加载的DLL文件不不匹配？</p>
+<h2 id="3-问题三：“sasl-sasl-h”-No-such-file-or-directory"><a href="#3-问题三：“sasl-sasl-h”-No-such-file-or-directory" class="headerlink" title="3. 问题三：“sasl/sasl.h”: No such file or directory"></a>3. 问题三：“sasl/sasl.h”: No such file or directory</h2><p> 第二个问题解决之后，继续执行pip install sasl，可能又会遇到第三个问题：<br> <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">..\pip-install-wrsldjm1\sasl\sasl\saslwrapper.h(<span class="number">22</span>): fatal error C1083: 无法打开包括文件: “sasl/sasl.h”: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure></p>
+<h3 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h3><p>点 <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#sasl">这里</a>下载一个对应你所使用的Python版本和Windows版本的sasl文件。比如本人下载的是 sasl‑0.2.1‑cp36‑cp36m‑win_amd64.whl，则对应Python 版本为3.6，Windows系统为64位。</p>
+<p>下载好之后，执行pip install sasl-0.2.1-cp37-cp37m-win_amd64.whl</p>
+<p>最后，解决完这几个问题，应该就可以成功的安装sasl了。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://wiki.python.org/moin/WindowsCompilers#Microsoft_Visual_C.2B-.2B-_14.0_with_Visual_Studio_2017_.28x86.2C_x64.2C_ARM.2C_ARM64.29">WindowsCompilers</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Hive</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>pyspark中遇到的坑</title>
+    <url>/2020/10/12/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<h1 id="模块依赖问题"><a href="#模块依赖问题" class="headerlink" title="模块依赖问题"></a>模块依赖问题</h1><p>因为平时写Spark应用程序基本都用Scala，之前有写过一段pyspark，但是都是在一个类或模块中实现所有的功能，也就自然没有遇到过要在一个模块中导入(import)自己写的另一个模块。这次遇到了，也发现了关于import模块时要注意的问题。</p>
+<a id="more"></a>
+
+<h2 id="1-PyCharm执行"><a href="#1-PyCharm执行" class="headerlink" title="1. PyCharm执行"></a>1. PyCharm执行</h2><p>要注意的是，当在一个模块(假如是module1)中导入相同目录(假设是demo)下的另一个模块(module2)中的变量list时，想当然的以为应该是这样导入 ——&gt; from module2 import list，但其实是这样 ——&gt; from demo.module2 import list，就是你要加上要导入模块的上级目录才行，如果想要实现这样导入 —— from module2 import list，需要进行一些设置，如下：<br><img src="01.png" alt="alt"></p>
+<p>还有另外一种可以不进行设置的方式 ——&gt; from .module2 import list，就是在要导入的模块的前面加一个.点表示导入的是同级目录下的模块。</p>
+<h2 id="2-集群提交"><a href="#2-集群提交" class="headerlink" title="2. 集群提交"></a>2. 集群提交</h2><p>提交命令：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master yarn \</span><br><span class="line">--deploy-mode cluster \</span><br><span class="line">--driver-memory 4G \</span><br><span class="line">--executor-memory 10G \</span><br><span class="line">--executor-cores 5 \</span><br><span class="line">--num-executors 6 \</span><br><span class="line">--conf &quot;spark.yarn.maxAppAttempts=1&quot; \</span><br><span class="line">--py-files /home/module2.py \</span><br><span class="line">/home/module1.py</span><br></pre></td></tr></table></figure>
+
+<p>因为spark任务在运行的时候一般都是分布式的，会先把程序代码module1.py发送到各个executor，而 module1.py 依赖模块 module2.py，那么也就需要把 module2.py 分发到各个executor节点，这就需要用到参数选项–py-files。</p>
+<p>在提交到远程集群执行的时候，并不需要像在本地那样还需要注意被导入模块的路径问题，只需要from module2 import list即可。</p>
+]]></content>
   </entry>
 </search>
