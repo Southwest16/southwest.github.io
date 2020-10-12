@@ -162,6 +162,44 @@
       </tags>
   </entry>
   <entry>
+    <title>Flink和Spark Streaming背压</title>
+    <url>/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
+    <content><![CDATA[<h2 id="什么是背压"><a href="#什么是背压" class="headerlink" title="什么是背压"></a>什么是背压</h2><p>在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做<strong>背压</strong>。</p>
+<a id="more"></a>
+
+<h1 id="Spark-Streaming中的背压"><a href="#Spark-Streaming中的背压" class="headerlink" title="Spark Streaming中的背压"></a>Spark Streaming中的背压</h1><p>在Spark 1.5之前，流应用程序如果因为资源不足导致处理数据的速度跟不上接收数据的速度的情况，可以通过设置每秒所接收数据的最大条数来缓解这种情况。对于使用Receiver的方式可以通过设置’spark.streaming.receiver.maxRate’参数；对于使用Direct的方式设置参数’spark.streaming.kafka.maxRatePerPartition’。</p>
+<p>Spark在1.5版本中引入了背压功能，就不再需要设置上述的速率限制了，Spark Streaming会随着处理条件的变化，自动计算所需要的速率，并进行动态地调整，但前提条件是要通过设置参数’spark.streaming.backpressure.enabled’=true来启用这个功能，因为这个功能在默认情况下是未启用的。</p>
+<h1 id="Flink中的背压"><a href="#Flink中的背压" class="headerlink" title="Flink中的背压"></a>Flink中的背压</h1><p>Flink的web界面上提供了一个标签来监控正在运行的job的背压行为。如果你看一个task的back pressure warning为High的话，那就表明产生数据的速度要比下游算子的消费速度快。拿一个简单的Source -&gt; Sink的例子来说，就是Sink算子对上游的Source算子产生了背压。</p>
+<h2 id="Flink是如何监控背压的"><a href="#Flink是如何监控背压的" class="headerlink" title="Flink是如何监控背压的"></a>Flink是如何监控背压的</h2><p>Flink中的背压监控是通过反复获取运行任务的堆栈跟踪样本来实现的。JobManager会为job中的tasks重复调用Thread.getStackTrace()。</p>
+<p>下面是官方提供的示意图：<br><img src="01.png" alt="alt"><br>如果堆栈跟踪样本显示某个task线程被卡在了某个内部方法的调用中(从网络堆栈请求缓冲)，则表明该task存在背压。</p>
+<p>默认情况下，为了确认是否存在背压，Job Manager会每50ms为每个task触发100次堆栈跟踪。我们可以从Web界面上看到有多少堆栈跟踪被卡在了内部方法的调用中，例如，0.01表示100跟踪里面有一个被卡在该方法中。</p>
+<p>下面是不同的比率对应的背压情况：</p>
+<ul>
+<li><p><strong>OK</strong>: 0 &lt;= Ratio &lt;= 0.10</p>
+</li>
+<li><p><strong>LOW</strong>: 0.10 &lt; Ratio &lt;= 0.5</p>
+</li>
+<li><p><strong>HIGH</strong>: 0.5 &lt; Ratio &lt;= 1</p>
+<p>为了不让task managers因为频繁触发堆栈跟踪而负载过重，Web监控接口会每60秒刷新一次跟踪样本。</p>
+</li>
+</ul>
+<h2 id="背压状态"><a href="#背压状态" class="headerlink" title="背压状态"></a>背压状态</h2><p>我们可以在Job overview旁边找到 Back Pressure标签。</p>
+<p>如果tasks的背压状态是<strong>OK</strong>，则表明没有背压情况。如下图：<br><img src="02.png" alt="alt"></p>
+<p>如果状态是<strong>HIGH</strong>，则表明tasks出现了背压。如下图：<br><img src="03.png" alt="alt"></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://spark.apache.org/docs/latest/streaming-programming-guide.html">https://spark.apache.org/docs/latest/streaming-programming-guide.html</a></li>
+<li><a href="https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html">https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Flink</category>
+      </categories>
+      <tags>
+        <tag>Flink</tag>
+        <tag>Spark Streaming</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hadoop集群数据迁移</title>
     <url>/2020/10/11/Hadoop%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB/</url>
     <content><![CDATA[<h1 id="集群版本"><a href="#集群版本" class="headerlink" title="集群版本"></a>集群版本</h1><pre><code>源集群: Hadoop-2.7.3、Hive-1.2.1(均为Apache开源版本)
@@ -201,44 +239,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Flink和Spark Streaming背压</title>
-    <url>/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/</url>
-    <content><![CDATA[<h2 id="什么是背压"><a href="#什么是背压" class="headerlink" title="什么是背压"></a>什么是背压</h2><p>在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做<strong>背压</strong>。</p>
-<a id="more"></a>
-
-<h1 id="Spark-Streaming中的背压"><a href="#Spark-Streaming中的背压" class="headerlink" title="Spark Streaming中的背压"></a>Spark Streaming中的背压</h1><p>在Spark 1.5之前，流应用程序如果因为资源不足导致处理数据的速度跟不上接收数据的速度的情况，可以通过设置每秒所接收数据的最大条数来缓解这种情况。对于使用Receiver的方式可以通过设置’spark.streaming.receiver.maxRate’参数；对于使用Direct的方式设置参数’spark.streaming.kafka.maxRatePerPartition’。</p>
-<p>Spark在1.5版本中引入了背压功能，就不再需要设置上述的速率限制了，Spark Streaming会随着处理条件的变化，自动计算所需要的速率，并进行动态地调整，但前提条件是要通过设置参数’spark.streaming.backpressure.enabled’=true来启用这个功能，因为这个功能在默认情况下是未启用的。</p>
-<h1 id="Flink中的背压"><a href="#Flink中的背压" class="headerlink" title="Flink中的背压"></a>Flink中的背压</h1><p>Flink的web界面上提供了一个标签来监控正在运行的job的背压行为。如果你看一个task的back pressure warning为High的话，那就表明产生数据的速度要比下游算子的消费速度快。拿一个简单的Source -&gt; Sink的例子来说，就是Sink算子对上游的Source算子产生了背压。</p>
-<h2 id="Flink是如何监控背压的"><a href="#Flink是如何监控背压的" class="headerlink" title="Flink是如何监控背压的"></a>Flink是如何监控背压的</h2><p>Flink中的背压监控是通过反复获取运行任务的堆栈跟踪样本来实现的。JobManager会为job中的tasks重复调用Thread.getStackTrace()。</p>
-<p>下面是官方提供的示意图：<br><img src="01.png" alt="alt"><br>如果堆栈跟踪样本显示某个task线程被卡在了某个内部方法的调用中(从网络堆栈请求缓冲)，则表明该task存在背压。</p>
-<p>默认情况下，为了确认是否存在背压，Job Manager会每50ms为每个task触发100次堆栈跟踪。我们可以从Web界面上看到有多少堆栈跟踪被卡在了内部方法的调用中，例如，0.01表示100跟踪里面有一个被卡在该方法中。</p>
-<p>下面是不同的比率对应的背压情况：</p>
-<ul>
-<li><p><strong>OK</strong>: 0 &lt;= Ratio &lt;= 0.10</p>
-</li>
-<li><p><strong>LOW</strong>: 0.10 &lt; Ratio &lt;= 0.5</p>
-</li>
-<li><p><strong>HIGH</strong>: 0.5 &lt; Ratio &lt;= 1</p>
-<p>为了不让task managers因为频繁触发堆栈跟踪而负载过重，Web监控接口会每60秒刷新一次跟踪样本。</p>
-</li>
-</ul>
-<h2 id="背压状态"><a href="#背压状态" class="headerlink" title="背压状态"></a>背压状态</h2><p>我们可以在Job overview旁边找到 Back Pressure标签。</p>
-<p>如果tasks的背压状态是<strong>OK</strong>，则表明没有背压情况。如下图：<br><img src="02.png" alt="alt"></p>
-<p>如果状态是<strong>HIGH</strong>，则表明tasks出现了背压。如下图：<br><img src="03.png" alt="alt"></p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
-<li><a href="https://spark.apache.org/docs/latest/streaming-programming-guide.html">https://spark.apache.org/docs/latest/streaming-programming-guide.html</a></li>
-<li><a href="https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html">https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Flink</category>
-      </categories>
-      <tags>
-        <tag>Flink</tag>
-        <tag>Spark Streaming</tag>
       </tags>
   </entry>
   <entry>
@@ -371,74 +371,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>Linux Sed命令使用指南</title>
-    <url>/2020/10/11/Linux-Sed%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</url>
-    <content><![CDATA[<h1 id="Sed命令"><a href="#Sed命令" class="headerlink" title="Sed命令"></a>Sed命令</h1><p>sed编辑器被称为流编辑器，它会执行下列操作：</p>
-<ol>
-<li>一次从输入读取一行数据，</li>
-<li>根据所提供的编辑器命令匹配数据，</li>
-<li>按照命令修改流中的数据，</li>
-<li>将新的数据输出到STDOUT。</li>
-</ol>
-<p>sed命令的格式：sed options [script] [file]</p>
-<a id="more"></a>
-
-<h1 id="常用options"><a href="#常用options" class="headerlink" title="常用options"></a>常用options</h1><ul>
-<li><p><strong>-i</strong><br>替换文件中每一行的aa为a，默认情况下它只替换每行中出现的第一处:</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&#x27;s/aa/a/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
-<li><p><strong>-e</strong><br>此选项可执行多个命令:</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -e <span class="string">&#x27;s/brown/green/; s/dog/cat/&#x27;</span> data.txt</span><br><span class="line">或sed -e <span class="string">&#x27;s/brown/green/ s/dog/cat/&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
-<li><p><strong>-f</strong><br>此选项在sed命令中指定文件。如果有大量要处理的sed命令，那么可以将它们放进一个单独的文件中：</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -f script.sed data.txt </span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<h1 id="替换标记"><a href="#替换标记" class="headerlink" title="替换标记"></a>替换标记</h1><p>让替换命令能够替换一行中不同地方出现的文本，格式：s/pattern/replacement/flags。<br>有4种可用的替换标记：</p>
-<ol>
-<li><p><strong>数字</strong>：表明新文本将替换第几处模式匹配的地方。</p>
- <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/2&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
-<li><p><strong>g</strong>：表明新文本将会替换所有匹配的文本。</p>
- <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>p</strong>：表明原先行的内容要打印出来。</p>
- <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -n <span class="string">&#x27;s/test/trial/p&#x27;</span> data.txt</span><br><span class="line"></span><br><span class="line">-n表示禁止sed编辑器输出，但p替换标记会输出修改过的行，将二者配合使用的效果就是只输出被替换命令修		改过的行。</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>w file</strong>：将替换的结果写带文件中。</p>
- <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/w out.txt&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<h1 id="行寻址"><a href="#行寻址" class="headerlink" title="行寻址"></a>行寻址</h1><p>sed编辑器中使用的命令会作用于文本数据的所有行，如果只想讲命令作用于特定行，则必须用行寻址。</p>
-<p>有以下两种形式：</p>
-<ol>
-<li>以数字形式表示行区间<ul>
-<li>替换第二行：sed ‘2s/dog/cat/‘ data.txt</li>
-<li>替换第二行到第三行：sed ‘2,3s/dog/cat/‘ data.txt</li>
-<li>替换某行开始的所有行：sed ‘2,$s/dog/cat/‘ data.txt</li>
-</ul>
-</li>
-<li>用文本模式来过滤行<br>sed ‘/Samantha/s/bash/csh/‘ /etc/passwd命令组合，如果需要在单行上执行多条命令，可以用花括号将多余命令组合在一起: sed  ‘2{s/fox/elephant/ s/dog/cat/}’ data.txt</li>
-</ol>
-<h1 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;d&#x27;</span> data.txt   		流中的所有文本行都会被删除</span><br><span class="line">sed <span class="string">&#x27;3d&#x27;</span> data.txt		删除第三行</span><br><span class="line">sed <span class="string">&#x27;2,3d&#x27;</span> data.txt		删除第2到第三行</span><br><span class="line">sed <span class="string">&#x27;3,\$d&#x27;</span> data.txt	删除第三及之后所有行</span><br><span class="line">sed <span class="string">&#x27;/dog/d&#x27;</span> data.txt	删除包含匹配指定模式的行</span><br><span class="line">sed <span class="string">&#x27;/^\$/d&#x27;</span> data.txt	删除空白行</span><br></pre></td></tr></table></figure>
-
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><ul>
-<li><p>打印匹配行到最后一行的内容</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -n <span class="string">&#x27;/c/,$&#123;//!p&#125;&#x27;</span> file</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>多个空格替换为指定字符(^)</p>
-  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&#x27;s/[[:space:]][[:space:]]*/^/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>sed</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java死锁产生的条件及死锁判断排查</title>
     <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
@@ -508,33 +440,71 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
-    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+    <title>Linux Sed命令使用指南</title>
+    <url>/2020/10/11/Linux-Sed%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</url>
+    <content><![CDATA[<h1 id="Sed命令"><a href="#Sed命令" class="headerlink" title="Sed命令"></a>Sed命令</h1><p>sed编辑器被称为流编辑器，它会执行下列操作：</p>
+<ol>
+<li>一次从输入读取一行数据，</li>
+<li>根据所提供的编辑器命令匹配数据，</li>
+<li>按照命令修改流中的数据，</li>
+<li>将新的数据输出到STDOUT。</li>
+</ol>
+<p>sed命令的格式：sed options [script] [file]</p>
 <a id="more"></a>
 
-<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
-<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
-<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
-<p>SQL实现组内求Top N：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
-<p>实现思路：</p>
-<ol>
-<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
-<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
-<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
-<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
-</ol>
-<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<h1 id="常用options"><a href="#常用options" class="headerlink" title="常用options"></a>常用options</h1><ul>
+<li><p><strong>-i</strong><br>替换文件中每一行的aa为a，默认情况下它只替换每行中出现的第一处:</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&#x27;s/aa/a/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>-e</strong><br>此选项可执行多个命令:</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -e <span class="string">&#x27;s/brown/green/; s/dog/cat/&#x27;</span> data.txt</span><br><span class="line">或sed -e <span class="string">&#x27;s/brown/green/ s/dog/cat/&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>-f</strong><br>此选项在sed命令中指定文件。如果有大量要处理的sed命令，那么可以将它们放进一个单独的文件中：</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -f script.sed data.txt </span><br></pre></td></tr></table></figure>
 
-<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+</li>
+</ul>
+<h1 id="替换标记"><a href="#替换标记" class="headerlink" title="替换标记"></a>替换标记</h1><p>让替换命令能够替换一行中不同地方出现的文本，格式：s/pattern/replacement/flags。<br>有4种可用的替换标记：</p>
+<ol>
+<li><p><strong>数字</strong>：表明新文本将替换第几处模式匹配的地方。</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/2&#x27;</span> data.txt</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>g</strong>：表明新文本将会替换所有匹配的文本。</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>p</strong>：表明原先行的内容要打印出来。</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -n <span class="string">&#x27;s/test/trial/p&#x27;</span> data.txt</span><br><span class="line"></span><br><span class="line">-n表示禁止sed编辑器输出，但p替换标记会输出修改过的行，将二者配合使用的效果就是只输出被替换命令修		改过的行。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>w file</strong>：将替换的结果写带文件中。</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;s/test/trial/w out.txt&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h1 id="行寻址"><a href="#行寻址" class="headerlink" title="行寻址"></a>行寻址</h1><p>sed编辑器中使用的命令会作用于文本数据的所有行，如果只想讲命令作用于特定行，则必须用行寻址。</p>
+<p>有以下两种形式：</p>
+<ol>
+<li>以数字形式表示行区间<ul>
+<li>替换第二行：sed ‘2s/dog/cat/‘ data.txt</li>
+<li>替换第二行到第三行：sed ‘2,3s/dog/cat/‘ data.txt</li>
+<li>替换某行开始的所有行：sed ‘2,$s/dog/cat/‘ data.txt</li>
+</ul>
+</li>
+<li>用文本模式来过滤行<br>sed ‘/Samantha/s/bash/csh/‘ /etc/passwd命令组合，如果需要在单行上执行多条命令，可以用花括号将多余命令组合在一起: sed  ‘2{s/fox/elephant/ s/dog/cat/}’ data.txt</li>
+</ol>
+<h1 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed <span class="string">&#x27;d&#x27;</span> data.txt   		流中的所有文本行都会被删除</span><br><span class="line">sed <span class="string">&#x27;3d&#x27;</span> data.txt		删除第三行</span><br><span class="line">sed <span class="string">&#x27;2,3d&#x27;</span> data.txt		删除第2到第三行</span><br><span class="line">sed <span class="string">&#x27;3,\$d&#x27;</span> data.txt	删除第三及之后所有行</span><br><span class="line">sed <span class="string">&#x27;/dog/d&#x27;</span> data.txt	删除包含匹配指定模式的行</span><br><span class="line">sed <span class="string">&#x27;/^\$/d&#x27;</span> data.txt	删除空白行</span><br></pre></td></tr></table></figure>
+
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><ul>
+<li><p>打印匹配行到最后一行的内容</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -n <span class="string">&#x27;/c/,$&#123;//!p&#125;&#x27;</span> file</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>多个空格替换为指定字符(^)</p>
+  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&#x27;s/[[:space:]][[:space:]]*/^/g&#x27;</span> data.txt</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
 ]]></content>
       <categories>
-        <category>MySQL</category>
+        <category>Linux</category>
       </categories>
       <tags>
-        <tag>MySQL</tag>
+        <tag>Linux</tag>
+        <tag>sed</tag>
       </tags>
   </entry>
   <entry>
@@ -609,6 +579,67 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>MySQL是如何通过变量实现组内排序的(MySQL 8.0之前版本，非row_number函数)</title>
+    <url>/2020/10/11/MySQL%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E5%8F%98%E9%87%8F%E5%AE%9E%E7%8E%B0%E7%BB%84%E5%86%85%E6%8E%92%E5%BA%8F%E7%9A%84-MySQL-8-0%E4%B9%8B%E5%89%8D%E7%89%88%E6%9C%AC%EF%BC%8C%E9%9D%9Erow-number%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>业务中要实现这样的逻辑：有一张用户表，每个用户有一个或多个银行账户，每个账户有对应的流水数据，现在想要获取每个用户的每个账户下，交易金额最大的前10条流水数据，该如何实现？</p>
+<a id="more"></a>
+
+<h1 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h1><p>组内排序取Top N在业务当中是一个会经常用到的功能。如果你是在大数据框架中取组内Top N，一般的大数据框架都提供了现成的函数，比如Hive中的row_number() + partitionBy()，实现起来会比较简单。而如果你用的是关系型数据库，比如MySQL，就没有类似现成的函数来实现这个功能了(MySQL 8.0开始也提供row_number函数，但是很多公司都还是使用的MySQL5.6/5.7)。</p>
+<p>那么在MySQL 8.0 之前如何实现组内排序呢？答案就是，借助变量。</p>
+<p>表(bank_transaction)中部分列：<br>|列名| 类型 | 含义 |<br>|–|–|–|<br>| user_id | varchar(64) | 用户ID |<br>| bank_account | varchar(64) | 银行账户 |<br>| transaction_amount | decimal(17, 2) | 交易金额 |</p>
+<p>SQL实现组内求Top N：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1, (<span class="keyword">select</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>)t2</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+<p>实现思路：</p>
+<ol>
+<li>第一步：对数据进行组内排序，t1这个子查询里面就是对每个用户的每个账户下的所有交易金额进行降序排列</li>
+<li>第二步：设置变量，@row_num变量保存的是组内排序时的编号，@group01和@group02保存的是要分组列的临时值</li>
+<li>第三步：遍历已排序数据，每次拿后一行与前一行进行比较，如果后一行分组列的值和前一行的相等（对应上面SQL语句中的if条件），就表明后一行与前一行属于同一个组，那么变量@row_num的值就加一；如果不相等，就从1重新开始。以此，给所有数据编号。</li>
+<li>第四步：给所有数据编号之后，通过where条件即可取出Top N的记录。</li>
+</ol>
+<p>另外，SQL也可以这样写，主要是变量的使用方式不同：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
+    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
+<a id="more"></a>
+
+<p>下面是出现问题的一段代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
+<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
+<ul>
+<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
+<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
+</ul>
+<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
+<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
+<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MySQL表同步到Hive</title>
     <url>/2020/10/11/MySQL%E8%A1%A8%E5%90%8C%E6%AD%A5%E5%88%B0Hive/</url>
     <content><![CDATA[<p>我们在往数据仓库中填充数据的第一步，就是要把RDBMS中的表导入到HDFS中。基于MapReduce的Sqoop工具可以很方便的将关系型数据库中的表导入到Hive、HBase中，并且记录可以以文本文件(每行一条记录)存储，也可以以Avro或SequenceFiles的二进制格式存储。</p>
@@ -643,6 +674,41 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Sqoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python解析Excel、PDF、HTML、CSV...文件</title>
+    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
+<a id="more"></a>
+
+<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
+<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
+<p>tabula的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
+<p>&nbsp;</p>
+<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
+<p>html文件的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
+<p>csv文件解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -689,72 +755,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>Python for循环中添加字典到列表，结果列表中全是循环中的最后一个值</title>
-    <url>/2020/10/11/Python-for%E5%BE%AA%E7%8E%AF%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%AD%97%E5%85%B8%E5%88%B0%E5%88%97%E8%A1%A8%EF%BC%8C%E7%BB%93%E6%9E%9C%E5%88%97%E8%A1%A8%E4%B8%AD%E5%85%A8%E6%98%AF%E5%BE%AA%E7%8E%AF%E4%B8%AD%E7%9A%84%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E5%80%BC/</url>
-    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>问题的是在Python解析Excel文件出现的。</p>
-<a id="more"></a>
-
-<p>下面是出现问题的一段代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 此函数实现了解析Excel文件，并将文件中的每行数据以字典的形式返回(key为列名，value为对应的值)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span>():</span></span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">yield</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将解析返回的每行数据追加到一个列表中</span></span><br><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic)</span><br><span class="line"></span><br><span class="line">print(list)</span><br></pre></td></tr></table></figure>
-<p>上面代码执行之后，输出的list中，发现所有元素的内容都是相同的，再去对比源文件，发现列表的元素都为Excel文件中最后一行内容。很明显，这肯定是不对的！</p>
-<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>出现这个问题之后，首先想到的就是逐步调试这段循环代码，同时观察dic的值和list中元素的值。</p>
-<ul>
-<li>第一次循环时，list中对应的确实是Excel中第一行的内容，</li>
-<li>第二次循环时，在dic已改变，但还没往list中追加第二个元素之前，发现第一次追加到list中的的元素的值已经发生了改变，而且改变之后的内容就和第二次循环时dic的内容相同。</li>
-</ul>
-<p>到这里，就恍然大悟了，原来每次往列表中追加的都是这个字典的引用，而不是字典的内容，所以才会在每次循环时，出现只要dic的内容发生了变化，list中之前追加进去的dic也随着发生改变的情况。</p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>知道了这个原因，我们就知道在追加列表时，针对Excel的每行数据，都应该追加不同的引用。</p>
-<p>那么具体的实现就是用到字典的copy()方法，如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">list = []</span><br><span class="line"><span class="keyword">for</span> dic <span class="keyword">in</span> func():</span><br><span class="line">	list.append(dic.copy())</span><br></pre></td></tr></table></figure>
-<p>copy()方法对字典dic进行了一个浅拷贝，也就是说对字典创建了一个新的引用。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
-<li><a href="https://docs.python.org/3.7/library/copy.html">https://docs.python.org/3.7/library/copy.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python解析Excel、PDF、HTML、CSV...文件</title>
-    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
-<a id="more"></a>
-
-<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
-<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
-<p>tabula的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
-
-<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
-<p>&nbsp;</p>
-<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
-<p>html文件的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
-<p>csv文件解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Python读写Elasticsearch、HBase、Hive</title>
     <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Elasticsearch%E3%80%81HBase%E3%80%81Hive/</url>
     <content><![CDATA[<a id="more"></a>
@@ -789,6 +789,29 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Python读写Phoenix</title>
+    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
+    <content><![CDATA[<p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
+<a id="more"></a>
+
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Phoenix</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Phoenix</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spark Connector连接器之整合读写Elasticsearch</title>
     <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Elasticsearch/</url>
     <content><![CDATA[<p>Elasticsearch提供了对Spark的支持，可以将ES中的索引（一行行的JSON数据）加载为RDD或DataFrame。</p>
@@ -815,56 +838,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Spark</tag>
         <tag>Elasticsearch</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python读写Phoenix</title>
-    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[<p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
-<a id="more"></a>
-
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Phoenix</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Phoenix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark Connector连接器之整合读写HBase</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
-    <content><![CDATA[<p>Spark以不同的方式读写HBase。</p>
-<a id="more"></a>
-
-<h1 id="Spark读HBase"><a href="#Spark读HBase" class="headerlink" title="Spark读HBase"></a>Spark读HBase</h1><h2 id="1-使用newAPIHadoopRDD-API"><a href="#1-使用newAPIHadoopRDD-API" class="headerlink" title="1. 使用newAPIHadoopRDD API"></a>1. 使用newAPIHadoopRDD API</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.Result</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.TableInputFormat</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.HBaseConfiguration</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types.&#123;IntegerType, StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">readHBase</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_START, <span class="string">&quot;start_key&quot;</span>) <span class="comment">//扫描起始rowKey</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_STOP, <span class="string">&quot;stop_key&quot;</span>) <span class="comment">//扫描终止rowKey</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//HBase表加载为RDD[(K, V)]</span></span><br><span class="line">    val rdd = spark.sparkContext.newAPIHadoopRDD(config,</span><br><span class="line">        classOf[TableInputFormat],</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[Result]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">//从Result中获取指定列最新版本的值</span></span><br><span class="line">    val rdd1 = rdd.map(m =&gt; &#123;</span><br><span class="line">        <span class="comment">//获取一行查询结果</span></span><br><span class="line">        val result: Result = m._2</span><br><span class="line"></span><br><span class="line">        val rowKey = Bytes.toString(result.getRow) <span class="comment">//获取row key</span></span><br><span class="line">        val userId = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;user_id&quot;</span>.getBytes))</span><br><span class="line">        val name = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;name&quot;</span>.getBytes))</span><br><span class="line">        val age = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;age&quot;</span>.getBytes))</span><br><span class="line"></span><br><span class="line">        Row(rowKey, userId, name, age)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建schema</span></span><br><span class="line">    val schema = StructType(</span><br><span class="line">      StructField(<span class="string">&quot;user_id&quot;</span>, IntegerType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;name&quot;</span>, StringType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;age&quot;</span>, IntegerType, <span class="keyword">true</span>) :: Nil)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//RDD转为DataFrame</span></span><br><span class="line">    val df = spark.createDataFrame(rdd1, schema)</span><br><span class="line">    </span><br><span class="line">    df.select(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Spark写HBase"><a href="#Spark写HBase" class="headerlink" title="Spark写HBase"></a>Spark写HBase</h1><h2 id="1-saveAsNewAPIHadoopFile-API"><a href="#1-saveAsNewAPIHadoopFile-API" class="headerlink" title="1. saveAsNewAPIHadoopFile API"></a>1. saveAsNewAPIHadoopFile API</h2><p>实现代码：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.&#123;HFileOutputFormat2, TableInputFormat&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, KeyValue&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Dataset, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">writeHBase</span><span class="params">(spark: SparkSession, datasetJson: Dataset[String])</span>: Unit </span>= &#123;</span><br><span class="line">    \<span class="comment">//假设datasetJson是一个json字符串类型的Dataset, 其结构为&quot;&#123;&quot;name&quot;:&quot;&quot;, &quot;age&quot;:&quot;&quot;, &quot;phone&quot;:&quot;&quot;, &quot;address&quot;:&quot;&quot;, &#125;&quot;</span></span><br><span class="line">    val ds = spark.read.json(datasetJson)</span><br><span class="line">    </span><br><span class="line">    val rdd = ds.rdd.mapPartitions(iterator =&gt; &#123;</span><br><span class="line">        iterator.map(m =&gt; &#123;</span><br><span class="line">            val json = JSON.parseObject(m.toString()) <span class="comment">//json字符串解析成JSONObject</span></span><br><span class="line">            val phone = json.getString(<span class="string">&quot;phone&quot;</span>) <span class="comment">//phone作为KeyValue的row key</span></span><br><span class="line">            json.remove(<span class="string">&quot;phone&quot;</span>) <span class="comment">//以便遍历其他所有键值对</span></span><br><span class="line"></span><br><span class="line">            val writable = <span class="keyword">new</span> ImmutableBytesWritable(Bytes.toBytes(phone)) <span class="comment">//键值对字节序列</span></span><br><span class="line">            val array = ArrayBuffer[(ImmutableBytesWritable, KeyValue)]() <span class="comment">//初始化数组, 存储JSONObject中的键值对</span></span><br><span class="line">            </span><br><span class="line">			<span class="comment">//JSON中的key作为Hbase表中的列名，并按字典序排序</span></span><br><span class="line">            val jsonKeys = json.keySet().toArray.map(_.toString).sortBy(x =&gt; x) </span><br><span class="line"></span><br><span class="line">            val length = jsonKeys.length</span><br><span class="line">            <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) &#123;</span><br><span class="line">                val key = jsonKeys(i)</span><br><span class="line">                val value = json.get(jsonKeys(i)).toString</span><br><span class="line">                <span class="comment">//KeyValue为HBase中的基本类型Key/Value。</span></span><br><span class="line">                <span class="comment">//构造函数中的参数依次为：rowkey、列族、列名、值。</span></span><br><span class="line">                <span class="comment">//Json对象中的每个key和其值构成HBase中每条记录的value</span></span><br><span class="line">                val keyValue: KeyValue = <span class="keyword">new</span> KeyValue(</span><br><span class="line">                    Bytes.toBytes(phone),  <span class="comment">//row key</span></span><br><span class="line">                    <span class="string">&quot;cf&quot;</span>.getBytes(), <span class="comment">//列族名</span></span><br><span class="line">                    key.getBytes(), <span class="comment">//列名</span></span><br><span class="line">                    value.getBytes()) <span class="comment">//列的值</span></span><br><span class="line"></span><br><span class="line">                array += ((writable, keyValue))</span><br><span class="line">            &#125;</span><br><span class="line">            array</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="comment">//重新分区，减少保存的文件数</span></span><br><span class="line">        <span class="comment">//展开数组中的元素</span></span><br><span class="line">        <span class="comment">//对rowkey排序</span></span><br><span class="line">    &#125;).repartition(<span class="number">1</span>).flatMap(x =&gt; x).sortByKey()</span><br><span class="line"></span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    val job = Job.getInstance(config)</span><br><span class="line">    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])</span><br><span class="line">    job.setMapOutputValueClass(classOf[KeyValue])</span><br><span class="line"></span><br><span class="line">    <span class="comment">//持久化到HBase表</span></span><br><span class="line">    rdd.saveAsNewAPIHadoopFile(<span class="string">&quot;/tmp/test&quot;</span>,</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[KeyValue],</span><br><span class="line">        classOf[HFileOutputFormat2],</span><br><span class="line">        job.getConfiguration)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-BulkLoad功能"><a href="#2-BulkLoad功能" class="headerlink" title="2. BulkLoad功能"></a>2. BulkLoad功能</h2><p>在将大批量数据离线导入HBase系统的场景中，不管是使用Put单条插入还是Put批量插入HBase，效率都不理想，还可能占用大量带宽资源，导致其他业务程序运行变慢。这个时候就可以考虑使用Bulk Load，Bulk Load使用MapReduce将待写入数据转换成HFile文件，再直接将这些HFile文件加载到集群中，BulkLoad并没有将写入请求发送给RegionServer，不会占用太多集群资源，效率极高。</p>
-<p>BulkLoad实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.ConnectionFactory</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, TableName&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.&#123;ByteArrayWrapper, FamiliesQualifiersValues, FamilyHFileWriteOptions, HBaseContext&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;DataFrame, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.HBaseRDDFunctions._</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">handle</span><span class="params">(spark: SparkSession, df: DataFrame, key: String, source: String, stagingDir: String)</span>: Unit </span>= &#123;</span><br><span class="line">	val sc = spark.sparkContext</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//使用HBase资源创建一个Configuration</span></span><br><span class="line">	val config = HBaseConfiguration.create()</span><br><span class="line">	\<span class="comment">//Zookeeper节点, 端口号</span></span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.quorum&quot;</span>, <span class="string">&quot;node-3,node-4,node-5&quot;</span>)</span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.property.clientPort&quot;</span>, <span class="string">&quot;2181&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//初始化HbaseContext</span></span><br><span class="line">	val hbaseContext = <span class="keyword">new</span> HBaseContext(sc, config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//DataFrame中的列名</span></span><br><span class="line">	val columns = df.columns</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase表</span></span><br><span class="line">	val tableName = TableName.valueOf(<span class="string">&quot;hbase_table_name&quot;</span>)</span><br><span class="line">	val conn = ConnectionFactory.createConnection(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase column family</span></span><br><span class="line">	val columnFamily: Array[Byte] = Bytes.toBytes(<span class="string">&quot;cf&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase bulk load对于那些少于1000个列短row的Spark实现</span></span><br><span class="line">	df.rdd.hbaseBulkLoadThinRows(</span><br><span class="line">		hbaseContext,</span><br><span class="line">		tableName, \<span class="comment">//要加载进数据的表</span></span><br><span class="line">		t =&gt; &#123; \<span class="comment">//一个要将RDD records转化成key value格式的函数</span></span><br><span class="line">			\<span class="comment">//rowKey</span></span><br><span class="line">			val rowKey = t.getAs(key).toString</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//保存并排序将要bulk load到单个row中的所有cells</span></span><br><span class="line">			val familyQualifiersValues = <span class="keyword">new</span> FamiliesQualifiersValues</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//遍历所有列</span></span><br><span class="line">			columns.foreach(c =&gt; &#123;</span><br><span class="line">				val qualifier = Bytes.toBytes(c) \<span class="comment">//HBase column qualifier</span></span><br><span class="line">				val value: Array[Byte] = Bytes.toBytes(t.getAs(c).toString) \<span class="comment">//HBase cell value</span></span><br><span class="line"></span><br><span class="line">				\<span class="comment">//添加一个新的cell到一个已存在的row</span></span><br><span class="line">				familyQualifiersValues.+=(columnFamily, qualifier, value)</span><br><span class="line">			&#125;)</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//添加字段(字段表示数据来源)</span></span><br><span class="line">			familyQualifiersValues.+=(columnFamily, Bytes.toBytes(<span class="string">&quot;source&quot;</span>), Bytes.toBytes(source))</span><br><span class="line"></span><br><span class="line">			(<span class="keyword">new</span> ByteArrayWrapper(Bytes.toBytes(rowKey)), familyQualifiersValues)</span><br><span class="line">		&#125;,</span><br><span class="line">		stagingDir, \<span class="comment">//要load到文件系统的路径</span></span><br><span class="line">		<span class="keyword">new</span> util.HashMap[Array[Byte], FamilyHFileWriteOptions], \<span class="comment">//一个选项, 可以设置列族写入HFile的方式(compression, bloomType, blockSize, dataBlockEncoding)</span></span><br><span class="line">		compactionExclude = <span class="keyword">false</span> \<span class="comment">//Compaction excluded for the HFiles</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//加载HFileOutputFormat的输出到一个已存在的表</span></span><br><span class="line">	val load = <span class="keyword">new</span> LoadIncrementalHFiles(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//将指定目录下的数据load到指定的表</span></span><br><span class="line">	load.doBulkLoad(<span class="keyword">new</span> Path(stagingDir),</span><br><span class="line">		conn.getAdmin,</span><br><span class="line">		conn.getTable(tableName),</span><br><span class="line">		conn.getRegionLocator(tableName)</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h1><p>spark-submit提交任务时需要依赖的第三方jar包：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastjson-1.2.62.jar</span><br><span class="line">hbase-protocol-1.2.0.jar</span><br><span class="line">hbase-common-1.2.0.jar</span><br><span class="line">hbase-spark-1.2.0-cdh5.16.2.jar</span><br><span class="line">hbase-client-1.2.0.jar</span><br><span class="line">hbase-server-1.2.0.jar</span><br><span class="line">htrace-core-3.1.0-incubating.jar</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>HBase</tag>
       </tags>
   </entry>
   <entry>
@@ -914,6 +887,33 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Spark</tag>
         <tag>HBase</tag>
         <tag>Phoenix</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark Connector连接器之整合读写HBase</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99HBase/</url>
+    <content><![CDATA[<p>Spark以不同的方式读写HBase。</p>
+<a id="more"></a>
+
+<h1 id="Spark读HBase"><a href="#Spark读HBase" class="headerlink" title="Spark读HBase"></a>Spark读HBase</h1><h2 id="1-使用newAPIHadoopRDD-API"><a href="#1-使用newAPIHadoopRDD-API" class="headerlink" title="1. 使用newAPIHadoopRDD API"></a>1. 使用newAPIHadoopRDD API</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.Result</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.TableInputFormat</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.HBaseConfiguration</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types.&#123;IntegerType, StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">readHBase</span><span class="params">(spark: SparkSession)</span>: Unit </span>= &#123;</span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_START, <span class="string">&quot;start_key&quot;</span>) <span class="comment">//扫描起始rowKey</span></span><br><span class="line">    config.set(TableInputFormat.SCAN_ROW_STOP, <span class="string">&quot;stop_key&quot;</span>) <span class="comment">//扫描终止rowKey</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//HBase表加载为RDD[(K, V)]</span></span><br><span class="line">    val rdd = spark.sparkContext.newAPIHadoopRDD(config,</span><br><span class="line">        classOf[TableInputFormat],</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[Result]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">//从Result中获取指定列最新版本的值</span></span><br><span class="line">    val rdd1 = rdd.map(m =&gt; &#123;</span><br><span class="line">        <span class="comment">//获取一行查询结果</span></span><br><span class="line">        val result: Result = m._2</span><br><span class="line"></span><br><span class="line">        val rowKey = Bytes.toString(result.getRow) <span class="comment">//获取row key</span></span><br><span class="line">        val userId = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;user_id&quot;</span>.getBytes))</span><br><span class="line">        val name = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;name&quot;</span>.getBytes))</span><br><span class="line">        val age = Bytes.toString(result.getValue(<span class="string">&quot;cf&quot;</span>.getBytes,<span class="string">&quot;age&quot;</span>.getBytes))</span><br><span class="line"></span><br><span class="line">        Row(rowKey, userId, name, age)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建schema</span></span><br><span class="line">    val schema = StructType(</span><br><span class="line">      StructField(<span class="string">&quot;user_id&quot;</span>, IntegerType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;name&quot;</span>, StringType, <span class="keyword">false</span>) ::</span><br><span class="line">      StructField(<span class="string">&quot;age&quot;</span>, IntegerType, <span class="keyword">true</span>) :: Nil)</span><br><span class="line"></span><br><span class="line">    <span class="comment">//RDD转为DataFrame</span></span><br><span class="line">    val df = spark.createDataFrame(rdd1, schema)</span><br><span class="line">    </span><br><span class="line">    df.select(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Spark写HBase"><a href="#Spark写HBase" class="headerlink" title="Spark写HBase"></a>Spark写HBase</h1><h2 id="1-saveAsNewAPIHadoopFile-API"><a href="#1-saveAsNewAPIHadoopFile-API" class="headerlink" title="1. saveAsNewAPIHadoopFile API"></a>1. saveAsNewAPIHadoopFile API</h2><p>实现代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.io.ImmutableBytesWritable</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.&#123;HFileOutputFormat2, TableInputFormat&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, KeyValue&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Dataset, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">writeHBase</span><span class="params">(spark: SparkSession, datasetJson: Dataset[String])</span>: Unit </span>= &#123;</span><br><span class="line">    \<span class="comment">//假设datasetJson是一个json字符串类型的Dataset, 其结构为&quot;&#123;&quot;name&quot;:&quot;&quot;, &quot;age&quot;:&quot;&quot;, &quot;phone&quot;:&quot;&quot;, &quot;address&quot;:&quot;&quot;, &#125;&quot;</span></span><br><span class="line">    val ds = spark.read.json(datasetJson)</span><br><span class="line">    </span><br><span class="line">    val rdd = ds.rdd.mapPartitions(iterator =&gt; &#123;</span><br><span class="line">        iterator.map(m =&gt; &#123;</span><br><span class="line">            val json = JSON.parseObject(m.toString()) <span class="comment">//json字符串解析成JSONObject</span></span><br><span class="line">            val phone = json.getString(<span class="string">&quot;phone&quot;</span>) <span class="comment">//phone作为KeyValue的row key</span></span><br><span class="line">            json.remove(<span class="string">&quot;phone&quot;</span>) <span class="comment">//以便遍历其他所有键值对</span></span><br><span class="line"></span><br><span class="line">            val writable = <span class="keyword">new</span> ImmutableBytesWritable(Bytes.toBytes(phone)) <span class="comment">//键值对字节序列</span></span><br><span class="line">            val array = ArrayBuffer[(ImmutableBytesWritable, KeyValue)]() <span class="comment">//初始化数组, 存储JSONObject中的键值对</span></span><br><span class="line">            </span><br><span class="line">			<span class="comment">//JSON中的key作为Hbase表中的列名，并按字典序排序</span></span><br><span class="line">            val jsonKeys = json.keySet().toArray.map(_.toString).sortBy(x =&gt; x) </span><br><span class="line"></span><br><span class="line">            val length = jsonKeys.length</span><br><span class="line">            <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until length) &#123;</span><br><span class="line">                val key = jsonKeys(i)</span><br><span class="line">                val value = json.get(jsonKeys(i)).toString</span><br><span class="line">                <span class="comment">//KeyValue为HBase中的基本类型Key/Value。</span></span><br><span class="line">                <span class="comment">//构造函数中的参数依次为：rowkey、列族、列名、值。</span></span><br><span class="line">                <span class="comment">//Json对象中的每个key和其值构成HBase中每条记录的value</span></span><br><span class="line">                val keyValue: KeyValue = <span class="keyword">new</span> KeyValue(</span><br><span class="line">                    Bytes.toBytes(phone),  <span class="comment">//row key</span></span><br><span class="line">                    <span class="string">&quot;cf&quot;</span>.getBytes(), <span class="comment">//列族名</span></span><br><span class="line">                    key.getBytes(), <span class="comment">//列名</span></span><br><span class="line">                    value.getBytes()) <span class="comment">//列的值</span></span><br><span class="line"></span><br><span class="line">                array += ((writable, keyValue))</span><br><span class="line">            &#125;</span><br><span class="line">            array</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="comment">//重新分区，减少保存的文件数</span></span><br><span class="line">        <span class="comment">//展开数组中的元素</span></span><br><span class="line">        <span class="comment">//对rowkey排序</span></span><br><span class="line">    &#125;).repartition(<span class="number">1</span>).flatMap(x =&gt; x).sortByKey()</span><br><span class="line"></span><br><span class="line">    val config = HBaseConfiguration.create()</span><br><span class="line">    config.set(TableInputFormat.INPUT_TABLE, <span class="string">&quot;test&quot;</span>) <span class="comment">//表名</span></span><br><span class="line"></span><br><span class="line">    val job = Job.getInstance(config)</span><br><span class="line">    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])</span><br><span class="line">    job.setMapOutputValueClass(classOf[KeyValue])</span><br><span class="line"></span><br><span class="line">    <span class="comment">//持久化到HBase表</span></span><br><span class="line">    rdd.saveAsNewAPIHadoopFile(<span class="string">&quot;/tmp/test&quot;</span>,</span><br><span class="line">        classOf[ImmutableBytesWritable],</span><br><span class="line">        classOf[KeyValue],</span><br><span class="line">        classOf[HFileOutputFormat2],</span><br><span class="line">        job.getConfiguration)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-BulkLoad功能"><a href="#2-BulkLoad功能" class="headerlink" title="2. BulkLoad功能"></a>2. BulkLoad功能</h2><p>在将大批量数据离线导入HBase系统的场景中，不管是使用Put单条插入还是Put批量插入HBase，效率都不理想，还可能占用大量带宽资源，导致其他业务程序运行变慢。这个时候就可以考虑使用Bulk Load，Bulk Load使用MapReduce将待写入数据转换成HFile文件，再直接将这些HFile文件加载到集群中，BulkLoad并没有将写入请求发送给RegionServer，不会占用太多集群资源，效率极高。</p>
+<p>BulkLoad实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.client.ConnectionFactory</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.&#123;HBaseConfiguration, TableName&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.&#123;ByteArrayWrapper, FamiliesQualifiersValues, FamilyHFileWriteOptions, HBaseContext&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;DataFrame, SparkSession&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.spark.HBaseRDDFunctions._</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.hbase.util.Bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">def <span class="title">handle</span><span class="params">(spark: SparkSession, df: DataFrame, key: String, source: String, stagingDir: String)</span>: Unit </span>= &#123;</span><br><span class="line">	val sc = spark.sparkContext</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//使用HBase资源创建一个Configuration</span></span><br><span class="line">	val config = HBaseConfiguration.create()</span><br><span class="line">	\<span class="comment">//Zookeeper节点, 端口号</span></span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.quorum&quot;</span>, <span class="string">&quot;node-3,node-4,node-5&quot;</span>)</span><br><span class="line">	config.set(<span class="string">&quot;hbase.zookeeper.property.clientPort&quot;</span>, <span class="string">&quot;2181&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//初始化HbaseContext</span></span><br><span class="line">	val hbaseContext = <span class="keyword">new</span> HBaseContext(sc, config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//DataFrame中的列名</span></span><br><span class="line">	val columns = df.columns</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase表</span></span><br><span class="line">	val tableName = TableName.valueOf(<span class="string">&quot;hbase_table_name&quot;</span>)</span><br><span class="line">	val conn = ConnectionFactory.createConnection(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase column family</span></span><br><span class="line">	val columnFamily: Array[Byte] = Bytes.toBytes(<span class="string">&quot;cf&quot;</span>)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//HBase bulk load对于那些少于1000个列短row的Spark实现</span></span><br><span class="line">	df.rdd.hbaseBulkLoadThinRows(</span><br><span class="line">		hbaseContext,</span><br><span class="line">		tableName, \<span class="comment">//要加载进数据的表</span></span><br><span class="line">		t =&gt; &#123; \<span class="comment">//一个要将RDD records转化成key value格式的函数</span></span><br><span class="line">			\<span class="comment">//rowKey</span></span><br><span class="line">			val rowKey = t.getAs(key).toString</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//保存并排序将要bulk load到单个row中的所有cells</span></span><br><span class="line">			val familyQualifiersValues = <span class="keyword">new</span> FamiliesQualifiersValues</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//遍历所有列</span></span><br><span class="line">			columns.foreach(c =&gt; &#123;</span><br><span class="line">				val qualifier = Bytes.toBytes(c) \<span class="comment">//HBase column qualifier</span></span><br><span class="line">				val value: Array[Byte] = Bytes.toBytes(t.getAs(c).toString) \<span class="comment">//HBase cell value</span></span><br><span class="line"></span><br><span class="line">				\<span class="comment">//添加一个新的cell到一个已存在的row</span></span><br><span class="line">				familyQualifiersValues.+=(columnFamily, qualifier, value)</span><br><span class="line">			&#125;)</span><br><span class="line"></span><br><span class="line">			\<span class="comment">//添加字段(字段表示数据来源)</span></span><br><span class="line">			familyQualifiersValues.+=(columnFamily, Bytes.toBytes(<span class="string">&quot;source&quot;</span>), Bytes.toBytes(source))</span><br><span class="line"></span><br><span class="line">			(<span class="keyword">new</span> ByteArrayWrapper(Bytes.toBytes(rowKey)), familyQualifiersValues)</span><br><span class="line">		&#125;,</span><br><span class="line">		stagingDir, \<span class="comment">//要load到文件系统的路径</span></span><br><span class="line">		<span class="keyword">new</span> util.HashMap[Array[Byte], FamilyHFileWriteOptions], \<span class="comment">//一个选项, 可以设置列族写入HFile的方式(compression, bloomType, blockSize, dataBlockEncoding)</span></span><br><span class="line">		compactionExclude = <span class="keyword">false</span> \<span class="comment">//Compaction excluded for the HFiles</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//加载HFileOutputFormat的输出到一个已存在的表</span></span><br><span class="line">	val load = <span class="keyword">new</span> LoadIncrementalHFiles(config)</span><br><span class="line"></span><br><span class="line">	\<span class="comment">//将指定目录下的数据load到指定的表</span></span><br><span class="line">	load.doBulkLoad(<span class="keyword">new</span> Path(stagingDir),</span><br><span class="line">		conn.getAdmin,</span><br><span class="line">		conn.getTable(tableName),</span><br><span class="line">		conn.getRegionLocator(tableName)</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="依赖包"><a href="#依赖包" class="headerlink" title="依赖包"></a>依赖包</h1><p>spark-submit提交任务时需要依赖的第三方jar包：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastjson-1.2.62.jar</span><br><span class="line">hbase-protocol-1.2.0.jar</span><br><span class="line">hbase-common-1.2.0.jar</span><br><span class="line">hbase-spark-1.2.0-cdh5.16.2.jar</span><br><span class="line">hbase-client-1.2.0.jar</span><br><span class="line">hbase-server-1.2.0.jar</span><br><span class="line">htrace-core-3.1.0-incubating.jar</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>HBase</tag>
       </tags>
   </entry>
   <entry>
@@ -1003,36 +1003,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>Spark中一行代码转换DataFrame所有列的类型</title>
-    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
-<a id="more"></a>
-
-<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
-<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
-<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
-</ul>
-<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
-<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
-<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
-<ol>
-<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
-<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Spark内存管理(静态内存管理和统一内存管理)</title>
     <url>/2020/10/11/Spark%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%99%E6%80%81%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%92%8C%E7%BB%9F%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<p>Spark1.6.0版本之前提供的是静态内存管理，实现类<strong>StaticMemoryManager</strong>；<br>Spark1.6.0版本及之后默认的是统一内存管理，实现类是<strong>UnifiedMemoryManager</strong>。</p>
@@ -1068,6 +1038,36 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Spark内存管理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark中一行代码转换DataFrame所有列的类型</title>
+    <url>/2020/10/10/Spark%E4%B8%AD%E4%B8%80%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%BD%AC%E5%8C%96DataFrame%E6%89%80%E6%9C%89%E5%88%97%E7%9A%84%E7%B1%BB%E5%9E%8B/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>当需要把DataFrame中所有列的类型转换成另外一种类型，并且这个DataFrame中字段很多，一个一个地转换要写很多冗余代码，那么就可以使用如下这两种转换方式。</p>
+<a id="more"></a>
+
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><h2 id="1-foldLeft-函数"><a href="#1-foldLeft-函数" class="headerlink" title="1. foldLeft() 函数"></a>1. foldLeft() 函数</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.DataFrame</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val df2: DataFrame = columns.foldLeft(df)&#123;(currentDF, column) =&gt; currentDF.withColumn(column, col(column).cast(<span class="string">&quot;string&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>变量columns</strong>：是一个String类型的数组，数组中的元素为df中的列名。</li>
+<li><strong>foldLeft函数</strong>：此函数以df为初始值，从左向右遍历columns数组，并把df的每一行和columns的每个元素作为参数传入foldLeft后面的函数中(也就是foldLeft后面的大括号中)。</li>
+<li>**withColumn()**：将每一列转换成String类型并赋值给当前列。如果存在同名的列，withColumn函数默认会进行覆盖。</li>
+</ul>
+<h2 id="2-map-函数"><a href="#2-map-函数" class="headerlink" title="2. map() 函数"></a>2. map() 函数</h2><p>代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.&#123;Column, DataFrame&#125;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.functions.col</span><br><span class="line"></span><br><span class="line">val df: DataFrame = ...</span><br><span class="line">val columns: Array[String] = df.columns</span><br><span class="line">val arrayColumn: Array[Column] = columns.map(column =&gt; col(column).cast(<span class="string">&quot;string&quot;</span>))</span><br><span class="line">val df2: DataFrame = df.select(arrayColumn :_*)</span><br></pre></td></tr></table></figure>
+<p>通过map函数将columns中的每一列转换成String类型，并返回一个Column类型的数组，然后，将arrayColumn数组中的每个元素作为参数传入select函数中，就相当于df.select(col1, col2, col3, …)。</p>
+<p>除此之外，这种写法还有一个很有用的场景：比如要在一个DataFrame中select出很多列(假如有几十个几百个)，如果要一个个显示写出来，既不方便又会让代码显得很冗余，那么就可以使用这种写法。</p>
+<ol>
+<li>先通过df.columns得到这个DataFrame中的所有列，返回一个包含所有列的数组；</li>
+<li>再使用Scala中的这种语法进行查询df.select(arrayColumn :_*)，非常简洁明了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -1196,6 +1196,41 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual</title>
+    <url>/2020/10/12/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual/</url>
+    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>这个问题是在Windows7上安装pyhive时遇到的。因为安装 pyhive 要依赖 sasl 模块，在pip install sasl 时报错 “缺少Microsoft Visual C++编译器” 。</p>
+<a id="more"></a>
+
+<p><strong><font color=red, size=4>以下是在执行 pip install sasl 时出现的一系列问题以及解决方法</font></strong></p>
+<h2 id="1-问题一：error-Microsoft-Visual-C-14-0-is-required"><a href="#1-问题一：error-Microsoft-Visual-C-14-0-is-required" class="headerlink" title="1. 问题一：error: Microsoft Visual C++ 14.0 is required"></a>1. 问题一：error: Microsoft Visual C++ 14.0 is required</h2><p>报错信息：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">error: Microsoft Visual C++ <span class="number">14.0</span> <span class="keyword">is</span> required. Get it <span class="keyword">with</span> <span class="string">&quot;Microsoft Visual C++ Build Tools&quot;</span>: </span><br><span class="line">https://visualstudio.microsoft.com/downloads.</span><br></pre></td></tr></table></figure>
+
+<p>原因：<br>虽然Python是一种解释性语言，但是在某些情况下可能需要安装Windows C++编译器。与Linux不同的是，Windows编译器在默认情况下是不包含在操作系统中的。这就需要我们自己安装了。微软提供了官方的C++编译器Visual C++，它是和Visual Studio捆绑在一起的。那么我们最终选择一个包含Visual C++ 14.0的Visual Studio来安装，这里选择的是Visual Studio 2017的版本。</p>
+<p><font color=red>注意：在安装Visual Studio 2017之前，建议先更新 pip install –upgrade setuptools。官方说是它包含兼容性的改进和添加编译器的自动使用。</font></p>
+<h3 id="解决方案：安装Microsoft-Visual-Studio"><a href="#解决方案：安装Microsoft-Visual-Studio" class="headerlink" title="解决方案：安装Microsoft Visual Studio"></a>解决方案：安装Microsoft Visual Studio</h3><h4 id="1-下载"><a href="#1-下载" class="headerlink" title="1. 下载"></a>1. 下载</h4><p>官方下载地址：<a href="https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14">https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14</a> 。 打开网址后，下载免费的社区版本即可。</p>
+<p><img src="01.png" alt="alt"></p>
+<h4 id="2-安装"><a href="#2-安装" class="headerlink" title="2. 安装"></a>2. 安装</h4><p>安装时，注意要勾选的选项，”工作负载” ——&gt; Windows一栏勾选 “使用 C++ 的桌面开发” 、Web和云一栏勾选Python开发，如下：</p>
+<p><img src="02.png" alt="alt"></p>
+<p>要下载的文件比较大，有7G左右，耗时较长。其他步骤默认即可。</p>
+<h2 id="2-问题二：ImportError-DLL-load-failed"><a href="#2-问题二：ImportError-DLL-load-failed" class="headerlink" title="2. 问题二：ImportError: DLL load failed"></a>2. 问题二：ImportError: DLL load failed</h2><p>问题一处理之后，再次安装sasl时，你可能会继续遇到第二个问题：ImportError: DLL load failed: 找不到指定的程序。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>用Python安装根目录下的 python3.dll 文件替换PyCharm工程\venv\Scripts目录下的同名文件。具体原因不太明确，可能是要加载的DLL文件不不匹配？</p>
+<h2 id="3-问题三：“sasl-sasl-h”-No-such-file-or-directory"><a href="#3-问题三：“sasl-sasl-h”-No-such-file-or-directory" class="headerlink" title="3. 问题三：“sasl/sasl.h”: No such file or directory"></a>3. 问题三：“sasl/sasl.h”: No such file or directory</h2><p> 第二个问题解决之后，继续执行pip install sasl，可能又会遇到第三个问题：<br> <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">..\pip-install-wrsldjm1\sasl\sasl\saslwrapper.h(<span class="number">22</span>): fatal error C1083: 无法打开包括文件: “sasl/sasl.h”: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure></p>
+<h3 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h3><p>点 <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#sasl">这里</a>下载一个对应你所使用的Python版本和Windows版本的sasl文件。比如本人下载的是 sasl‑0.2.1‑cp36‑cp36m‑win_amd64.whl，则对应Python 版本为3.6，Windows系统为64位。</p>
+<p>下载好之后，执行pip install sasl-0.2.1-cp37-cp37m-win_amd64.whl</p>
+<p>最后，解决完这几个问题，应该就可以成功的安装sasl了。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://wiki.python.org/moin/WindowsCompilers#Microsoft_Visual_C.2B-.2B-_14.0_with_Visual_Studio_2017_.28x86.2C_x64.2C_ARM.2C_ARM64.29">WindowsCompilers</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Hive</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
     <url>/2020/10/11/pymysql-DBUtils%E5%AE%9E%E7%8E%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%89%B9%E9%87%8F%E8%AF%BB%E5%86%99/</url>
     <content><![CDATA[<h2 id="1-安装pymysql、DBUtils"><a href="#1-安装pymysql、DBUtils" class="headerlink" title="1. 安装pymysql、DBUtils"></a>1. 安装pymysql、DBUtils</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pymysql</span><br><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple DBUtils</span><br></pre></td></tr></table></figure>
@@ -1228,6 +1263,21 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>pyspark中遇到的坑</title>
+    <url>/2020/10/12/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<h1 id="模块依赖问题"><a href="#模块依赖问题" class="headerlink" title="模块依赖问题"></a>模块依赖问题</h1><p>因为平时写Spark应用程序基本都用Scala，之前有写过一段pyspark，但是都是在一个类或模块中实现所有的功能，也就自然没有遇到过要在一个模块中导入(import)自己写的另一个模块。这次遇到了，也发现了关于import模块时要注意的问题。</p>
+<a id="more"></a>
+
+<h2 id="1-PyCharm执行"><a href="#1-PyCharm执行" class="headerlink" title="1. PyCharm执行"></a>1. PyCharm执行</h2><p>要注意的是，当在一个模块(假如是module1)中导入相同目录(假设是demo)下的另一个模块(module2)中的变量list时，想当然的以为应该是这样导入 ——&gt; from module2 import list，但其实是这样 ——&gt; from demo.module2 import list，就是你要加上要导入模块的上级目录才行，如果想要实现这样导入 —— from module2 import list，需要进行一些设置，如下：<br><img src="01.png" alt="alt"></p>
+<p>还有另外一种可以不进行设置的方式 ——&gt; from .module2 import list，就是在要导入的模块的前面加一个.点表示导入的是同级目录下的模块。</p>
+<h2 id="2-集群提交"><a href="#2-集群提交" class="headerlink" title="2. 集群提交"></a>2. 集群提交</h2><p>提交命令：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master yarn \</span><br><span class="line">--deploy-mode cluster \</span><br><span class="line">--driver-memory 4G \</span><br><span class="line">--executor-memory 10G \</span><br><span class="line">--executor-cores 5 \</span><br><span class="line">--num-executors 6 \</span><br><span class="line">--conf &quot;spark.yarn.maxAppAttempts=1&quot; \</span><br><span class="line">--py-files /home/module2.py \</span><br><span class="line">/home/module1.py</span><br></pre></td></tr></table></figure>
+
+<p>因为spark任务在运行的时候一般都是分布式的，会先把程序代码module1.py发送到各个executor，而 module1.py 依赖模块 module2.py，那么也就需要把 module2.py 分发到各个executor节点，这就需要用到参数选项–py-files。</p>
+<p>在提交到远程集群执行的时候，并不需要像在本地那样还需要注意被导入模块的路径问题，只需要from module2 import list即可。</p>
+]]></content>
+  </entry>
+  <entry>
     <title>Spark实现单词统计WordCount (Scala/Python/Java)</title>
     <url>/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/</url>
     <content><![CDATA[<p>入门Spark的第一个小例子就是编写一个简单的WordCount程序，来统计一个文件中每个单词的个数。接下来分别是用Scala、Python和Java三种语言来实现WordCount的代码，都是基于<strong>Spark2.0+版本</strong>和<strong>本地local模式</strong>。</p>
@@ -1247,6 +1297,40 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
+    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
+<ul>
+<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
+<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
+<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
+<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
+<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
+</ul>
+<a id="more"></a>
+
+<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
+<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*)匹配了尽可能多的字符。</li>
+<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
+</ul>
+<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
+<p>可以在右下角看到匹配结果：</p>
+<ul>
+<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
+<li>分组2中，(\d+)就匹配了所有数字</li>
+</ul>
+]]></content>
+      <categories>
+        <category>正则表达式</category>
+      </categories>
+      <tags>
+        <tag>正则表达式</tag>
       </tags>
   </entry>
   <entry>
@@ -1287,37 +1371,28 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>图解正则表达式中的贪婪模式和非贪婪模式</title>
-    <url>/2020/10/11/%E5%9B%BE%E8%A7%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E5%92%8C%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h1 id="正则表达式符号"><a href="#正则表达式符号" class="headerlink" title="正则表达式符号"></a>正则表达式符号</h1><p>正则表达式中部分符号含义：</p>
-<ul>
-<li>点号(.) —&gt; 匹配除换行符之外的任意单个字符</li>
-<li>星号(*) —&gt; 匹配0个或多个之前的字符（比如：a*可以匹配0个或多个a）</li>
-<li>问号(?) —&gt; 匹配0个或1个之前的字符（比如：a?可以匹配0个或1个a）</li>
-<li>点号和星号组合(.*) —&gt; 匹配除换行符之外的所有字符（贪婪模式）</li>
-<li>点号、星号和问号组合(.*?) —&gt; 匹配符合条件的最少字符（也即非贪婪模式）</li>
-</ul>
+    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
+    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
+    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
 <a id="more"></a>
 
-<p>这里分享一个网站<a href="https://regex101.com/">regex101</a>，可以方便的查看和测试正则表达式。</p>
-<h1 id="贪婪模式"><a href="#贪婪模式" class="headerlink" title="贪婪模式"></a>贪婪模式</h1><p><img src="01.png" alt="alt"><br>上图中，正则表达式为(.*)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*)匹配了尽可能多的字符。</li>
-<li>分组2中，虽然(\d+)可以匹配多个数字，但是因为分组1是贪婪模式，所以(\d+)只匹配了最后一个数字。</li>
-</ul>
-<h1 id="非贪婪模式"><a href="#非贪婪模式" class="headerlink" title="非贪婪模式"></a>非贪婪模式</h1><p><img src="02.png" alt="alt"><br>上图中，正则表达式为(.*?)(\d+).*，测试文本为”Flink_123.java”。</p>
-<p>可以在右下角看到匹配结果：</p>
-<ul>
-<li>分组1中，(.*?)匹配了尽可能少的符合条件的字符。</li>
-<li>分组2中，(\d+)就匹配了所有数字</li>
-</ul>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
+<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
+<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
+<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
 ]]></content>
       <categories>
-        <category>正则表达式</category>
+        <category>Spark</category>
       </categories>
       <tags>
-        <tag>正则表达式</tag>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
@@ -1405,31 +1480,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>数据仓库</tag>
         <tag>维度模型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
-    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
-<a id="more"></a>
-
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
-<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
-<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
-<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
@@ -1532,55 +1582,5 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Spark性能优化</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>pyhive依赖模块sasl安装(pip install sasl)报错Microsoft Visual</title>
-    <url>/2020/10/12/pyhive%E4%BE%9D%E8%B5%96%E6%A8%A1%E5%9D%97sasl%E5%AE%89%E8%A3%85-pip-install-sasl-%E6%8A%A5%E9%94%99Microsoft-Visual/</url>
-    <content><![CDATA[<h1 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h1><p>这个问题是在Windows7上安装pyhive时遇到的。因为安装 pyhive 要依赖 sasl 模块，在pip install sasl 时报错 “缺少Microsoft Visual C++编译器” 。</p>
-<a id="more"></a>
-
-<p><strong><font color=red, size=4>以下是在执行 pip install sasl 时出现的一系列问题以及解决方法</font></strong></p>
-<h2 id="1-问题一：error-Microsoft-Visual-C-14-0-is-required"><a href="#1-问题一：error-Microsoft-Visual-C-14-0-is-required" class="headerlink" title="1. 问题一：error: Microsoft Visual C++ 14.0 is required"></a>1. 问题一：error: Microsoft Visual C++ 14.0 is required</h2><p>报错信息：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">error: Microsoft Visual C++ <span class="number">14.0</span> <span class="keyword">is</span> required. Get it <span class="keyword">with</span> <span class="string">&quot;Microsoft Visual C++ Build Tools&quot;</span>: </span><br><span class="line">https://visualstudio.microsoft.com/downloads.</span><br></pre></td></tr></table></figure>
-
-<p>原因：<br>虽然Python是一种解释性语言，但是在某些情况下可能需要安装Windows C++编译器。与Linux不同的是，Windows编译器在默认情况下是不包含在操作系统中的。这就需要我们自己安装了。微软提供了官方的C++编译器Visual C++，它是和Visual Studio捆绑在一起的。那么我们最终选择一个包含Visual C++ 14.0的Visual Studio来安装，这里选择的是Visual Studio 2017的版本。</p>
-<p><font color=red>注意：在安装Visual Studio 2017之前，建议先更新 pip install –upgrade setuptools。官方说是它包含兼容性的改进和添加编译器的自动使用。</font></p>
-<h3 id="解决方案：安装Microsoft-Visual-Studio"><a href="#解决方案：安装Microsoft-Visual-Studio" class="headerlink" title="解决方案：安装Microsoft Visual Studio"></a>解决方案：安装Microsoft Visual Studio</h3><h4 id="1-下载"><a href="#1-下载" class="headerlink" title="1. 下载"></a>1. 下载</h4><p>官方下载地址：<a href="https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14">https://docs.microsoft.com/zh-cn/visualstudio/releasenotes/vs2017-relnotes#15.9.14</a> 。 打开网址后，下载免费的社区版本即可。</p>
-<p><img src="01.png" alt="alt"></p>
-<h4 id="2-安装"><a href="#2-安装" class="headerlink" title="2. 安装"></a>2. 安装</h4><p>安装时，注意要勾选的选项，”工作负载” ——&gt; Windows一栏勾选 “使用 C++ 的桌面开发” 、Web和云一栏勾选Python开发，如下：</p>
-<p><img src="02.png" alt="alt"></p>
-<p>要下载的文件比较大，有7G左右，耗时较长。其他步骤默认即可。</p>
-<h2 id="2-问题二：ImportError-DLL-load-failed"><a href="#2-问题二：ImportError-DLL-load-failed" class="headerlink" title="2. 问题二：ImportError: DLL load failed"></a>2. 问题二：ImportError: DLL load failed</h2><p>问题一处理之后，再次安装sasl时，你可能会继续遇到第二个问题：ImportError: DLL load failed: 找不到指定的程序。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>用Python安装根目录下的 python3.dll 文件替换PyCharm工程\venv\Scripts目录下的同名文件。具体原因不太明确，可能是要加载的DLL文件不不匹配？</p>
-<h2 id="3-问题三：“sasl-sasl-h”-No-such-file-or-directory"><a href="#3-问题三：“sasl-sasl-h”-No-such-file-or-directory" class="headerlink" title="3. 问题三：“sasl/sasl.h”: No such file or directory"></a>3. 问题三：“sasl/sasl.h”: No such file or directory</h2><p> 第二个问题解决之后，继续执行pip install sasl，可能又会遇到第三个问题：<br> <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">..\pip-install-wrsldjm1\sasl\sasl\saslwrapper.h(<span class="number">22</span>): fatal error C1083: 无法打开包括文件: “sasl/sasl.h”: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure></p>
-<h3 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h3><p>点 <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/#sasl">这里</a>下载一个对应你所使用的Python版本和Windows版本的sasl文件。比如本人下载的是 sasl‑0.2.1‑cp36‑cp36m‑win_amd64.whl，则对应Python 版本为3.6，Windows系统为64位。</p>
-<p>下载好之后，执行pip install sasl-0.2.1-cp37-cp37m-win_amd64.whl</p>
-<p>最后，解决完这几个问题，应该就可以成功的安装sasl了。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
-<li><a href="https://wiki.python.org/moin/WindowsCompilers#Microsoft_Visual_C.2B-.2B-_14.0_with_Visual_Studio_2017_.28x86.2C_x64.2C_ARM.2C_ARM64.29">WindowsCompilers</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Hive</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>pyspark中遇到的坑</title>
-    <url>/2020/10/12/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/</url>
-    <content><![CDATA[<h1 id="模块依赖问题"><a href="#模块依赖问题" class="headerlink" title="模块依赖问题"></a>模块依赖问题</h1><p>因为平时写Spark应用程序基本都用Scala，之前有写过一段pyspark，但是都是在一个类或模块中实现所有的功能，也就自然没有遇到过要在一个模块中导入(import)自己写的另一个模块。这次遇到了，也发现了关于import模块时要注意的问题。</p>
-<a id="more"></a>
-
-<h2 id="1-PyCharm执行"><a href="#1-PyCharm执行" class="headerlink" title="1. PyCharm执行"></a>1. PyCharm执行</h2><p>要注意的是，当在一个模块(假如是module1)中导入相同目录(假设是demo)下的另一个模块(module2)中的变量list时，想当然的以为应该是这样导入 ——&gt; from module2 import list，但其实是这样 ——&gt; from demo.module2 import list，就是你要加上要导入模块的上级目录才行，如果想要实现这样导入 —— from module2 import list，需要进行一些设置，如下：<br><img src="01.png" alt="alt"></p>
-<p>还有另外一种可以不进行设置的方式 ——&gt; from .module2 import list，就是在要导入的模块的前面加一个.点表示导入的是同级目录下的模块。</p>
-<h2 id="2-集群提交"><a href="#2-集群提交" class="headerlink" title="2. 集群提交"></a>2. 集群提交</h2><p>提交命令：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master yarn \</span><br><span class="line">--deploy-mode cluster \</span><br><span class="line">--driver-memory 4G \</span><br><span class="line">--executor-memory 10G \</span><br><span class="line">--executor-cores 5 \</span><br><span class="line">--num-executors 6 \</span><br><span class="line">--conf &quot;spark.yarn.maxAppAttempts=1&quot; \</span><br><span class="line">--py-files /home/module2.py \</span><br><span class="line">/home/module1.py</span><br></pre></td></tr></table></figure>
-
-<p>因为spark任务在运行的时候一般都是分布式的，会先把程序代码module1.py发送到各个executor，而 module1.py 依赖模块 module2.py，那么也就需要把 module2.py 分发到各个executor节点，这就需要用到参数选项–py-files。</p>
-<p>在提交到远程集群执行的时候，并不需要像在本地那样还需要注意被导入模块的路径问题，只需要from module2 import list即可。</p>
-]]></content>
   </entry>
 </search>
