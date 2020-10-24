@@ -22,13 +22,13 @@
 
   <meta name="description" content="概述文件系统(FS)shell包含了一系列的与shell相似的命令，很多都对应着Unix中的命令，这些命令可以直接与Hadoop分布式文件系统(HDFS)以及Hadoop支持的其他文件系统，如本地FS、HFTP、S3等进行交互。可以通过如下方法调用：bin&#x2F;hadoop fs &lt;args&gt;。args都是以路径URI作为参数，本篇文章都是基于HDFS来介绍说明的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="YARN&#x2F;Hadoop&#x2F;HDFS常用命令">
+<meta property="og:title" content="YARN、Hadoop、HDFS常用命令">
 <meta property="og:url" content="http://example.com/2020/10/11/YARN-Hadoop-HDFS%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/index.html">
 <meta property="og:site_name" content="aof的博客">
 <meta property="og:description" content="概述文件系统(FS)shell包含了一系列的与shell相似的命令，很多都对应着Unix中的命令，这些命令可以直接与Hadoop分布式文件系统(HDFS)以及Hadoop支持的其他文件系统，如本地FS、HFTP、S3等进行交互。可以通过如下方法调用：bin&#x2F;hadoop fs &lt;args&gt;。args都是以路径URI作为参数，本篇文章都是基于HDFS来介绍说明的。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-10-11T05:34:35.000Z">
-<meta property="article:modified_time" content="2020-10-12T12:49:49.334Z">
+<meta property="article:modified_time" content="2020-10-24T05:36:52.684Z">
 <meta property="article:author" content="aof">
 <meta property="article:tag" content="Hadoop">
 <meta property="article:tag" content="Yarn">
@@ -48,7 +48,7 @@
   };
 </script>
 
-  <title>YARN/Hadoop/HDFS常用命令 | aof的博客</title>
+  <title>YARN、Hadoop、HDFS常用命令 | aof的博客</title>
   
 
 
@@ -209,7 +209,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          YARN/Hadoop/HDFS常用命令
+          YARN、Hadoop、HDFS常用命令
         </h1>
 
         <div class="post-meta">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-12 20:49:49" itemprop="dateModified" datetime="2020-10-12T20:49:49+08:00">2020-10-12</time>
+                <time title="修改时间：2020-10-24 13:36:52" itemprop="dateModified" datetime="2020-10-24T13:36:52+08:00">2020-10-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -264,51 +264,51 @@
 <p>一个HDFS中的文件或目录的格式大致是这样：<code>hdfs://namenodehost/test/a.txt</code>。namenodehost即为NameNode节点的主机名。如果你的Hadoop安装目录../hadoop/etc/hadoop/core-site.xml的文件中有如下配置，那么在操作一个文件或目录时，可以省掉前缀，即/test/a.txt。</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://namenodehost<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="YARN命令"><a href="#YARN命令" class="headerlink" title="YARN命令"></a>YARN命令</h1><h3 id="yarn-application"><a href="#yarn-application" class="headerlink" title="yarn application"></a>yarn application</h3><ul>
+<h1 id="YARN命令"><a href="#YARN命令" class="headerlink" title="YARN命令"></a>YARN命令</h1><h2 id="yarn-application"><a href="#yarn-application" class="headerlink" title="yarn application"></a>yarn application</h2><ul>
 <li>yarn application -list  appID<br>查看正在运行的yarn任务列表</li>
-<li>yarn application -kill  appID<br>kill掉指定id的yarn任务<h3 id="yarn-logs"><a href="#yarn-logs" class="headerlink" title="yarn logs"></a>yarn logs</h3></li>
+<li>yarn application -kill  appID<br>kill掉指定id的yarn任务<h2 id="yarn-logs"><a href="#yarn-logs" class="headerlink" title="yarn logs"></a>yarn logs</h2></li>
 <li>yarn logs -applicationId  appID<br>如果日志聚合被开启(yarn.log-aggregation-enable), container日志会被拷贝到HDFS上，同时删除本地的日志。这些日志可以在集群的任何地方使用yarn logs命令查看。注意只有在任务结束之后才能用此命令查看任务日志信息。</li>
 </ul>
-<h1 id="Hadoop命令"><a href="#Hadoop命令" class="headerlink" title="Hadoop命令"></a>Hadoop命令</h1><h3 id="ls"><a href="#ls" class="headerlink" title="ls"></a>ls</h3><p>返回指定文件或指定目录下所有文件的权限、副本数、所属用户组等信息。</p>
+<h1 id="Hadoop命令"><a href="#Hadoop命令" class="headerlink" title="Hadoop命令"></a>Hadoop命令</h1><h2 id="ls"><a href="#ls" class="headerlink" title="ls"></a>ls</h2><p>返回指定文件或指定目录下所有文件的权限、副本数、所属用户组等信息。</p>
 <p>示例：hadoop fs -ls /test/</p>
-<h3 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h3><p>显示文件内容到标准输出。</p>
+<h2 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h2><p>显示文件内容到标准输出。</p>
 <p>示例：<br>hadoop fs -cat /test/src.txt 显示文件src.txt的所有内容<br>hadoop fs -cat /test/src.txt | less 对于内容较多的文件可以用less上下翻页</p>
-<h3 id="cp"><a href="#cp" class="headerlink" title="cp"></a>cp</h3><p>拷贝文件从源地址到目标地址。允许拷贝一次拷贝多个文件到目标目录下。</p>
+<h2 id="cp"><a href="#cp" class="headerlink" title="cp"></a>cp</h2><p>拷贝文件从源地址到目标地址。允许拷贝一次拷贝多个文件到目标目录下。</p>
 <p>示例：hadoop fs -cp /test/src.txt /test/des.txt拷贝时可以改变文件名</p>
-<h3 id="mv"><a href="#mv" class="headerlink" title="mv"></a>mv</h3><p>将文件或目录从源地址移动到目标地址。</p>
+<h2 id="mv"><a href="#mv" class="headerlink" title="mv"></a>mv</h2><p>将文件或目录从源地址移动到目标地址。</p>
 <p>示例：hadoop fs -mv /test/src.txt /test2/</p>
-<h3 id="touchz"><a href="#touchz" class="headerlink" title="touchz"></a>touchz</h3><p>创建一个空文件。</p>
+<h2 id="touchz"><a href="#touchz" class="headerlink" title="touchz"></a>touchz</h2><p>创建一个空文件。</p>
 <p>示例：hadoop fs -touchz /test/src.txt</p>
-<h3 id="mkdir"><a href="#mkdir" class="headerlink" title="mkdir"></a>mkdir</h3><p>创建目录。</p>
+<h2 id="mkdir"><a href="#mkdir" class="headerlink" title="mkdir"></a>mkdir</h2><p>创建目录。</p>
 <p>示例：<br>hadoop fs -mkdir /test/dir创建目录dir<br>hadoop fs -mkdir -p /test/dir1/dir2/dir3递归地创建dir1、dir2和dir3</p>
-<h3 id="rm"><a href="#rm" class="headerlink" title="rm"></a>rm</h3><p>删除指定的文件。</p>
+<h2 id="rm"><a href="#rm" class="headerlink" title="rm"></a>rm</h2><p>删除指定的文件。</p>
 <p>示例：<br>hadoop fs -rm /test/des.txt删除文件des.txt<br>hadoop fs -rm -r /test递归地删除test目录以及test下面的所有目录和文件(<font color=red><strong>慎用啊！</strong></font>)。</p>
-<h3 id="rmr"><a href="#rmr" class="headerlink" title="rmr"></a>rmr</h3><p>递归地删除文件和目录。此命令已被弃用，代替使用-rm -r。</p>
-<h3 id="rmdir"><a href="#rmdir" class="headerlink" title="rmdir"></a>rmdir</h3><p>删除指定目录。</p>
+<h2 id="rmr"><a href="#rmr" class="headerlink" title="rmr"></a>rmr</h2><p>递归地删除文件和目录。此命令已被弃用，代替使用-rm -r。</p>
+<h2 id="rmdir"><a href="#rmdir" class="headerlink" title="rmdir"></a>rmdir</h2><p>删除指定目录。</p>
 <p>示例：hadoop fs -rmdir /test</p>
-<h3 id="get"><a href="#get" class="headerlink" title="get"></a>get</h3><p>拷贝HDFS中的文件到本地文件系统。</p>
+<h2 id="get"><a href="#get" class="headerlink" title="get"></a>get</h2><p>拷贝HDFS中的文件到本地文件系统。</p>
 <p>示例：hadoop fs -get /test/src.txt . 拷贝src.txt文件到本地文件系统的当前目录下</p>
-<h3 id="put"><a href="#put" class="headerlink" title="put"></a>put</h3><p>拷贝本地文件系统中的文件到HDFS上。</p>
+<h2 id="put"><a href="#put" class="headerlink" title="put"></a>put</h2><p>拷贝本地文件系统中的文件到HDFS上。</p>
 <p>示例：hadoop fs -put src.txt /test/</p>
-<h3 id="copyFromLocal"><a href="#copyFromLocal" class="headerlink" title="copyFromLocal"></a>copyFromLocal</h3><p>功能和put类似，除了要求源文件一定要是本地文件。</p>
-<h3 id="copyToLocal"><a href="#copyToLocal" class="headerlink" title="copyToLocal"></a>copyToLocal</h3><p>功能和get类似，除了目标文件要是本地文件引用。</p>
-<h3 id="moveFromLocal"><a href="#moveFromLocal" class="headerlink" title="moveFromLocal"></a>moveFromLocal</h3><p>功能类似put，除了拷贝之后会删除源文件。</p>
-<h3 id="moveToLocal"><a href="#moveToLocal" class="headerlink" title="moveToLocal"></a>moveToLocal</h3><p>目前无法使用，执行命令会显示 “Not implemented yet” 。</p>
-<h3 id="df"><a href="#df" class="headerlink" title="df"></a>df</h3><p>显示文件系统空间占用情况。</p>
+<h2 id="copyFromLocal"><a href="#copyFromLocal" class="headerlink" title="copyFromLocal"></a>copyFromLocal</h2><p>功能和put类似，除了要求源文件一定要是本地文件。</p>
+<h2 id="copyToLocal"><a href="#copyToLocal" class="headerlink" title="copyToLocal"></a>copyToLocal</h2><p>功能和get类似，除了目标文件要是本地文件引用。</p>
+<h2 id="moveFromLocal"><a href="#moveFromLocal" class="headerlink" title="moveFromLocal"></a>moveFromLocal</h2><p>功能类似put，除了拷贝之后会删除源文件。</p>
+<h2 id="moveToLocal"><a href="#moveToLocal" class="headerlink" title="moveToLocal"></a>moveToLocal</h2><p>目前无法使用，执行命令会显示 “Not implemented yet” 。</p>
+<h2 id="df"><a href="#df" class="headerlink" title="df"></a>df</h2><p>显示文件系统空间占用情况。</p>
 <p>示例：hadoop fs -df -h /test/src.txt<br>Filesystem SizeUsedAvailableUse%<br>hdfs://nnhost5T 2.1T 2.9T42%</p>
-<h3 id="du"><a href="#du" class="headerlink" title="du"></a>du</h3><p>显示文件大小，或者目录中所有文件大小。</p>
+<h2 id="du"><a href="#du" class="headerlink" title="du"></a>du</h2><p>显示文件大小，或者目录中所有文件大小。</p>
 <p>示例：<br>hadoop fs -du -h /test/src.txt显示文件大小<br>hadoop fs -du -h /test/依次显示目录下所有文件的大小</p>
-<h3 id="find"><a href="#find" class="headerlink" title="find"></a>find</h3><p>显示指定目录下匹配指定表达式的所有文件。</p>
+<h2 id="find"><a href="#find" class="headerlink" title="find"></a>find</h2><p>显示指定目录下匹配指定表达式的所有文件。</p>
 <p>示例：hadoop fs -find /test -name “*.txt”显示/test目录下所有以.txt结尾的文件</p>
-<h3 id="count"><a href="#count" class="headerlink" title="count"></a>count</h3><p>依次显示URI下面的总的目录数、文件数和字节数。</p>
+<h2 id="count"><a href="#count" class="headerlink" title="count"></a>count</h2><p>依次显示URI下面的总的目录数、文件数和字节数。</p>
 <p>示例：hadoop fs -count /test/<br>目录数文件数字节数<br>50000 10000 409600000</p>
-<h3 id="tail"><a href="#tail" class="headerlink" title="tail"></a>tail</h3><p>显示文件的最后一kb到标准输出。</p>
+<h2 id="tail"><a href="#tail" class="headerlink" title="tail"></a>tail</h2><p>显示文件的最后一kb到标准输出。</p>
 <p>示例：hadoop fs -tail /test/src.txt</p>
-<h3 id="chmod"><a href="#chmod" class="headerlink" title="chmod"></a>chmod</h3><p>修改文件的权限。</p>
+<h2 id="chmod"><a href="#chmod" class="headerlink" title="chmod"></a>chmod</h2><p>修改文件的权限。</p>
 <p>示例：<br>hadoop fs -chmod 744 /test/src.txt修改文件src.txt的权限为r+w+x<br>hadoop fs -chmod -R 744 /test/递归地修改test目录及其子目录下所有文件的权限</p>
-<h3 id="chown"><a href="#chown" class="headerlink" title="chown"></a>chown</h3><p>修改文件所属的用户</p>
+<h2 id="chown"><a href="#chown" class="headerlink" title="chown"></a>chown</h2><p>修改文件所属的用户</p>
 <p>示例：hadoop fs -chown [-R] owner:group /test/src.txt</p>
-<h3 id="checksum"><a href="#checksum" class="headerlink" title="checksum"></a>checksum</h3><p>查看文件的校验信息。</p>
+<h2 id="checksum"><a href="#checksum" class="headerlink" title="checksum"></a>checksum</h2><p>查看文件的校验信息。</p>
 <p>示例：hadoop fs -checksum /test/src.txt</p>
 
     </div>
@@ -330,12 +330,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" rel="prev" title="Spark connector连接器之整合读写MySQL及问题汇总">
-      <i class="fa fa-chevron-left"></i> Spark connector连接器之整合读写MySQL及问题汇总
+    <a href="/2020/10/11/Spark-connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99MySQL%E5%8F%8A%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" rel="prev" title="Spark整合读写MySQL及问题汇总">
+      <i class="fa fa-chevron-left"></i> Spark整合读写MySQL及问题汇总
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/" rel="next" title="Spark实现单词统计WordCount (Scala/Python/Java)">
-      Spark实现单词统计WordCount (Scala/Python/Java) <i class="fa fa-chevron-right"></i>
+    <a href="/2020/10/11/%E5%8D%95%E8%AF%8D%E7%BB%9F%E8%AE%A1WordCount-Scala-Python-Java/" rel="next" title="Scala/Python/Java三种语言编写Spark应用实现单词统计WordCount">
+      Scala/Python/Java三种语言编写Spark应用实现单词统计WordCount <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -395,7 +395,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#YARN%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">YARN命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#yarn-application"><span class="nav-number">2.0.1.</span> <span class="nav-text">yarn application</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#yarn-logs"><span class="nav-number">2.0.2.</span> <span class="nav-text">yarn logs</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hadoop%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">Hadoop命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ls"><span class="nav-number">3.0.1.</span> <span class="nav-text">ls</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cat"><span class="nav-number">3.0.2.</span> <span class="nav-text">cat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cp"><span class="nav-number">3.0.3.</span> <span class="nav-text">cp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mv"><span class="nav-number">3.0.4.</span> <span class="nav-text">mv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#touchz"><span class="nav-number">3.0.5.</span> <span class="nav-text">touchz</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mkdir"><span class="nav-number">3.0.6.</span> <span class="nav-text">mkdir</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rm"><span class="nav-number">3.0.7.</span> <span class="nav-text">rm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rmr"><span class="nav-number">3.0.8.</span> <span class="nav-text">rmr</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rmdir"><span class="nav-number">3.0.9.</span> <span class="nav-text">rmdir</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get"><span class="nav-number">3.0.10.</span> <span class="nav-text">get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#put"><span class="nav-number">3.0.11.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#copyFromLocal"><span class="nav-number">3.0.12.</span> <span class="nav-text">copyFromLocal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#copyToLocal"><span class="nav-number">3.0.13.</span> <span class="nav-text">copyToLocal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#moveFromLocal"><span class="nav-number">3.0.14.</span> <span class="nav-text">moveFromLocal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#moveToLocal"><span class="nav-number">3.0.15.</span> <span class="nav-text">moveToLocal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#df"><span class="nav-number">3.0.16.</span> <span class="nav-text">df</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#du"><span class="nav-number">3.0.17.</span> <span class="nav-text">du</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find"><span class="nav-number">3.0.18.</span> <span class="nav-text">find</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#count"><span class="nav-number">3.0.19.</span> <span class="nav-text">count</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tail"><span class="nav-number">3.0.20.</span> <span class="nav-text">tail</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chmod"><span class="nav-number">3.0.21.</span> <span class="nav-text">chmod</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chown"><span class="nav-number">3.0.22.</span> <span class="nav-text">chown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#checksum"><span class="nav-number">3.0.23.</span> <span class="nav-text">checksum</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#YARN%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">YARN命令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#yarn-application"><span class="nav-number">2.1.</span> <span class="nav-text">yarn application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#yarn-logs"><span class="nav-number">2.2.</span> <span class="nav-text">yarn logs</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hadoop%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">Hadoop命令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ls"><span class="nav-number">3.1.</span> <span class="nav-text">ls</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cat"><span class="nav-number">3.2.</span> <span class="nav-text">cat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cp"><span class="nav-number">3.3.</span> <span class="nav-text">cp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mv"><span class="nav-number">3.4.</span> <span class="nav-text">mv</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#touchz"><span class="nav-number">3.5.</span> <span class="nav-text">touchz</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mkdir"><span class="nav-number">3.6.</span> <span class="nav-text">mkdir</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rm"><span class="nav-number">3.7.</span> <span class="nav-text">rm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rmr"><span class="nav-number">3.8.</span> <span class="nav-text">rmr</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rmdir"><span class="nav-number">3.9.</span> <span class="nav-text">rmdir</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get"><span class="nav-number">3.10.</span> <span class="nav-text">get</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#put"><span class="nav-number">3.11.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#copyFromLocal"><span class="nav-number">3.12.</span> <span class="nav-text">copyFromLocal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#copyToLocal"><span class="nav-number">3.13.</span> <span class="nav-text">copyToLocal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#moveFromLocal"><span class="nav-number">3.14.</span> <span class="nav-text">moveFromLocal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#moveToLocal"><span class="nav-number">3.15.</span> <span class="nav-text">moveToLocal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#df"><span class="nav-number">3.16.</span> <span class="nav-text">df</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#du"><span class="nav-number">3.17.</span> <span class="nav-text">du</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#find"><span class="nav-number">3.18.</span> <span class="nav-text">find</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#count"><span class="nav-number">3.19.</span> <span class="nav-text">count</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tail"><span class="nav-number">3.20.</span> <span class="nav-text">tail</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chmod"><span class="nav-number">3.21.</span> <span class="nav-text">chmod</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chown"><span class="nav-number">3.22.</span> <span class="nav-text">chown</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#checksum"><span class="nav-number">3.23.</span> <span class="nav-text">checksum</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
