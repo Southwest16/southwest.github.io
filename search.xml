@@ -318,27 +318,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>Impala与Hive的语法区别</title>
-    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
-    <content><![CDATA[<p>Impala和Hive的区别</p>
-<a id="more"></a>
-
-<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
-<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
-<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
-<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
-<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Impala</category>
-      </categories>
-      <tags>
-        <tag>Hive</tag>
-        <tag>Impala</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>JSON数据转成Spark Dataset/DataFrame</title>
     <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
     <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
@@ -370,6 +349,27 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Impala与Hive的语法区别</title>
+    <url>/2020/10/11/Impala%E4%B8%8EHive%E7%9A%84%E8%AF%AD%E6%B3%95%E5%8C%BA%E5%88%AB-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD/</url>
+    <content><![CDATA[<p>Impala和Hive的区别</p>
+<a id="more"></a>
+
+<h1 id="使用上的不同"><a href="#使用上的不同" class="headerlink" title="使用上的不同"></a>使用上的不同</h1><ul>
+<li>不支持Date类型<br>Impala中是不支持Date数据类型的</li>
+<li>union时字段类型问题<br>Impala中两表union时，对应字段的数据类型必须一致(比如，int类型不能和空字符串””union)。而Hive中是允许的。</li>
+<li>中文占用的长度<br>Impala中一个中文长度为3，Hive中一个中文长度为1。</li>
+<li>不兼容的函数<br>Impala不支持date_format()、current_date()。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Impala</category>
+      </categories>
+      <tags>
+        <tag>Hive</tag>
+        <tag>Impala</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java死锁产生的条件及死锁判断排查</title>
     <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
@@ -398,44 +398,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Java</tag>
         <tag>死锁</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL查询非分组聚合列（sql_mode=only_full_group_by）</title>
-    <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
-    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> company_name, department, employee <span class="keyword">from</span> company <span class="keyword">group</span> <span class="keyword">by</span> company_name</span><br></pre></td></tr></table></figure>
-<p>如果是MySQL 5.7以前的版本，是可以执行成功的；如果是MySQL 5.7及以上版本，就会报错：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">ERROR 1140 (42000): In aggregated query without GROUP BY, expression... of <span class="keyword">SELECT</span> <span class="keyword">list</span> contains nonaggregated <span class="keyword">column</span> <span class="string">&#x27;col_name&#x27;</span>; this is incompatible <span class="keyword">with</span> sql_mode=only_full_group_by</span><br></pre></td></tr></table></figure>
-
-<a id="more"></a>
-
-<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>在标准的 SQL-92中，上述的查询是不被支持的。也就是说，select列表、having条件和order by列表中是不允许出现非聚合列的，所谓非聚合列就是group by子句中的列。换句话说，就是select中查询的列，必须出现在group by子句中，否则就必须在非聚合列上使用聚合函数（比如sum()、max()等）。</p>
-<p>为什么不允许这样查询呢？主要是因为分组之后，要查询非聚合列，其实是不知道该取那个值的。</p>
-<p>但是MySQL对标准的SQL-92做了扩展，使得select列表、having条件和order by列表中可以引用非聚合列，这个功能可以带来更好的性能，因为它需要对非聚合列进行分组排序。不过在分组之后，查询非聚合列时，其取值是随机的，也就是组内随机取一个，就算是先通过order by进行排序之后，也是随机取值的。</p>
-<p>因为MySQL 5.7之前，配置项ONLY_FULL_GROUP_BY是默认禁用的，也就是支持在select列表、having条件和order by列表中引用非聚合列且不适用聚合函数；而MySQL 5.7及之后的版本中，配置项ONLY_FULL_GROUP_BY默认是开启的，则不支持上述功能。</p>
-<p>可以通过下面SQL查看ONLY_FULL_GROUP_BY是否启用：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 查询的结果中包含ONLY_FULL_GROUP_BY就说明是启用的，否则就是被禁用的</span></span><br><span class="line"><span class="keyword">select</span> @@global.sql_mode;</span><br></pre></td></tr></table></figure>
-
-<p>由于本人使用的是MySQL 5.7，所以在select中查询非聚合列就出现了上述的报错</p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>了解了问题原因和原理之后，解决起来就比较简单了。</p>
-<p>通过下面SQL将sql_mode中的ONLY_FULL_GROUP_BY替换成空即可：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
-
-<p>当然也可以设置会话级别的：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
-<p>或者是通过MySQL配置文件my.cnf进行修改（需重启mysql实例）。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
-<li><a href="https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html</a></li>
-<li><a href="https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html</a></li>
-<li><a href="https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by">https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -528,6 +490,44 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @row_num := <span class="number">0</span>, @group01 := <span class="string">&quot;&quot;</span>, @group02 := <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">	user_id,</span><br><span class="line">	bank_account,</span><br><span class="line">	transaction_amount</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	<span class="keyword">select</span></span><br><span class="line">		user_id,</span><br><span class="line">		bank_account,</span><br><span class="line">		transaction_amount,</span><br><span class="line">		@row_num := <span class="keyword">if</span>(@group01 = user_id <span class="keyword">and</span> @group02 = bank_account, @row_num + <span class="number">1</span>, <span class="number">1</span>) <span class="keyword">as</span> rn,</span><br><span class="line">		@group01 := user_id,</span><br><span class="line">		@group02 := bank_account	</span><br><span class="line">	<span class="keyword">from</span> (</span><br><span class="line">		<span class="keyword">select</span></span><br><span class="line">			user_id,</span><br><span class="line">			bank_account,</span><br><span class="line">			transaction_amount</span><br><span class="line">		<span class="keyword">from</span> bank_transaction </span><br><span class="line">		<span class="keyword">order</span> <span class="keyword">by</span> user_id, bank_account, transaction_amount <span class="keyword">desc</span></span><br><span class="line">	) t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">where</span> t.rn &lt;= <span class="number">6</span></span><br></pre></td></tr></table></figure>
 
 <p>Hive中如何实现组内排序求Top N，可以参考<a href="https://editor.csdn.net/md/?articleId=107349381">这里</a>。</p>
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL查询非分组聚合列（sql_mode=only_full_group_by）</title>
+    <url>/2020/10/11/MySQL-SELECT%E6%9F%A5%E8%AF%A2%E9%9D%9E%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E5%88%97%EF%BC%88sql-mode-only-full-group-by%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务中有这样的逻辑：通过某一列col1分组之后查询col1，col2，col3这三个列，SQL语句如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> company_name, department, employee <span class="keyword">from</span> company <span class="keyword">group</span> <span class="keyword">by</span> company_name</span><br></pre></td></tr></table></figure>
+<p>如果是MySQL 5.7以前的版本，是可以执行成功的；如果是MySQL 5.7及以上版本，就会报错：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">ERROR 1140 (42000): In aggregated query without GROUP BY, expression... of <span class="keyword">SELECT</span> <span class="keyword">list</span> contains nonaggregated <span class="keyword">column</span> <span class="string">&#x27;col_name&#x27;</span>; this is incompatible <span class="keyword">with</span> sql_mode=only_full_group_by</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>在标准的 SQL-92中，上述的查询是不被支持的。也就是说，select列表、having条件和order by列表中是不允许出现非聚合列的，所谓非聚合列就是group by子句中的列。换句话说，就是select中查询的列，必须出现在group by子句中，否则就必须在非聚合列上使用聚合函数（比如sum()、max()等）。</p>
+<p>为什么不允许这样查询呢？主要是因为分组之后，要查询非聚合列，其实是不知道该取那个值的。</p>
+<p>但是MySQL对标准的SQL-92做了扩展，使得select列表、having条件和order by列表中可以引用非聚合列，这个功能可以带来更好的性能，因为它需要对非聚合列进行分组排序。不过在分组之后，查询非聚合列时，其取值是随机的，也就是组内随机取一个，就算是先通过order by进行排序之后，也是随机取值的。</p>
+<p>因为MySQL 5.7之前，配置项ONLY_FULL_GROUP_BY是默认禁用的，也就是支持在select列表、having条件和order by列表中引用非聚合列且不适用聚合函数；而MySQL 5.7及之后的版本中，配置项ONLY_FULL_GROUP_BY默认是开启的，则不支持上述功能。</p>
+<p>可以通过下面SQL查看ONLY_FULL_GROUP_BY是否启用：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 查询的结果中包含ONLY_FULL_GROUP_BY就说明是启用的，否则就是被禁用的</span></span><br><span class="line"><span class="keyword">select</span> @@global.sql_mode;</span><br></pre></td></tr></table></figure>
+
+<p>由于本人使用的是MySQL 5.7，所以在select中查询非聚合列就出现了上述的报错</p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>了解了问题原因和原理之后，解决起来就比较简单了。</p>
+<p>通过下面SQL将sql_mode中的ONLY_FULL_GROUP_BY替换成空即可：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>当然也可以设置会话级别的：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_mode=(<span class="keyword">select</span> <span class="keyword">replace</span>(@@sql_mode, <span class="string">&#x27;ONLY_FULL_GROUP_BY&#x27;</span>, <span class="string">&#x27;&#x27;</span>));</span><br></pre></td></tr></table></figure>
+<p>或者是通过MySQL配置文件my.cnf进行修改（需重启mysql实例）。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a href="https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.6/en/group-by-handling.html</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html">https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by">https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by</a></li>
+</ol>
 ]]></content>
       <categories>
         <category>MySQL</category>
@@ -676,6 +676,41 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Python解析Excel、PDF、HTML、CSV等文件</title>
+    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
+<a id="more"></a>
+
+<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
+<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
+<p>tabula的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
+<p>&nbsp;</p>
+<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
+<p>html文件的解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>&nbsp;</p>
+<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
+<p>csv文件解析代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python POP3抽取、解压邮箱压缩包</title>
     <url>/2020/10/11/Python%E4%BD%BF%E7%94%A8POP3%E5%8D%8F%E8%AE%AE%E5%AE%A2%E6%88%B7%E7%AB%AFpoplib%E7%99%BB%E5%BD%95%E9%82%AE%E7%AE%B1%E5%B9%B6%E8%A7%A3%E5%8E%8B%E7%BC%A9zip%E3%80%81rar%E5%8E%8B%E7%BC%A9%E5%8C%85/</url>
     <content><![CDATA[<h1 id="1-项目背景"><a href="#1-项目背景" class="headerlink" title="1. 项目背景"></a>1. 项目背景</h1><p>目前在做的一个小项目，需要到登录到邮箱获取压缩包，解压压缩包获取文件，并从文件中抽取出有效数据入库，后续会做一些二次加工，最后用到业务风控中。</p>
@@ -716,41 +751,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>ZIP</tag>
         <tag>RAR</tag>
         <tag>压缩包</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python解析Excel、PDF、HTML、CSV等文件</title>
-    <url>/2020/10/11/Python%E8%A7%A3%E6%9E%90Excel%E3%80%81PDF%E3%80%81HTML%E3%80%81CSV-%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>Python在文件解析方面有很多丰富的三方模块，接下来我们就看如何使用Python解析Excel、PDF、HTML、CSV这几种常见格式的文件。</p>
-<a id="more"></a>
-
-<h1 id="1-Excel文件解析"><a href="#1-Excel文件解析" class="headerlink" title="1. Excel文件解析"></a>1. Excel文件解析</h1><p>标准的Excel文件其实就相当于一张表，有表头和对应的数据。一般常见的Excel文件都以.xls、.xlsx和.et结尾。</p>
-<p>以下是使用xlrd模块实现解析Excel文件的代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">xls_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">    data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">    <span class="comment"># 一个Excel文件中所有sheet的名称</span></span><br><span class="line">    sheets = data.sheet_names()</span><br><span class="line">    <span class="comment"># 通过sheet名获取对应的sheet表内容</span></span><br><span class="line">    table = data.sheet_by_name(sheets[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = table.nrows  <span class="comment"># 表格总行数</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假如第一行是表头</span></span><br><span class="line">	header = table.row_values(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, rows):</span><br><span class="line">        <span class="comment"># 表记录值与对应的表头组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, table.row_values(i)))</span><br><span class="line">        </span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item  <span class="comment"># 返回json格式</span></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="2-PDF文件解析"><a href="#2-PDF文件解析" class="headerlink" title="2. PDF文件解析"></a>2. PDF文件解析</h1><p>PDF相对来说是比较难的解析，除非PDF中有类似Excel格式的数据，否则解析出来的数据很难进行规范化。Python中也有很多解析pdf文件的第三方库。比如tabula等</p>
-<p>tabula的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> tabula</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 提取PDF文件中的表格</span></span><br><span class="line">    tables = tabula.read_pdf(file_data, pages=<span class="string">&quot;all&quot;</span>)  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">    <span class="comment"># 遍历提取出的所有表格</span></span><br><span class="line">    <span class="keyword">for</span> df <span class="keyword">in</span> tables:</span><br><span class="line">        <span class="comment"># 提取表头</span></span><br><span class="line">        columns = list(df.columns)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 按列切分表格记录</span></span><br><span class="line">        df_new = pd.DataFrame(columns=columns)</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> columns:</span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line">            </span><br><span class="line">        <span class="comment"># DataFrame转JSON</span></span><br><span class="line">        json_array = json.loads(df_new.to_json(orient=<span class="string">&quot;records&quot;</span>, force_ascii=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> json_array:</span><br><span class="line">            <span class="keyword">yield</span> json.dumps(item, ensure_ascii=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
-
-<p>除了tabula之外，本人还是测试了很多其他的第三方模块，比如pdfminer.six、pdfminer3k、pdfplumber、PyPDF2、slate3k、camelot。要使用哪个模块，主要依赖于pdf文件内容的规范程度，总的来说推荐使用pdfplumber或者tabula。</p>
-<p>&nbsp;</p>
-<h1 id="3-HTML文件解析"><a href="#3-HTML文件解析" class="headerlink" title="3. HTML文件解析"></a>3. HTML文件解析</h1><p>HTML格式的文件相当于是半结构的数据，解析相对来说比较简单。</p>
-<p>html文件的解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> lxml.etree <span class="keyword">import</span> HTML</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">html_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    <span class="comment"># 从一个字符串常量中解析HTML文档</span></span><br><span class="line">    html = HTML(file_data.read())</span><br><span class="line">    html_tables = html.findall(<span class="string">&quot;body/table&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 将HTML中的所有&lt;table&gt;都放到一个列表中, 以便后续统一处理</span></span><br><span class="line">    table_rows = []</span><br><span class="line">    <span class="keyword">for</span> html_table <span class="keyword">in</span> html_tables:</span><br><span class="line">        table_rows.extend(list(html_table))</span><br><span class="line"></span><br><span class="line">    rows = len(table_rows)  <span class="comment"># 表格总行数</span></span><br><span class="line">    start_row = <span class="number">0</span>  <span class="comment"># 起始行</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 假设第一行是表头</span></span><br><span class="line">    header = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[<span class="number">0</span>]]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        values = [col.text <span class="keyword">for</span> col <span class="keyword">in</span> table_rows[i]]</span><br><span class="line">        <span class="comment"># 表记录值与对应的列名组成字典</span></span><br><span class="line">        col_dic = dict(zip(header, values))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>&nbsp;</p>
-<h1 id="4-CSV文件解析"><a href="#4-CSV文件解析" class="headerlink" title="4. CSV文件解析"></a>4. CSV文件解析</h1><p>csv是默认以逗号(,)分割的一行行数据组成的文件。通常情况，csv文件都可以通过Excel软件打开，正常显示为表格。</p>
-<p>csv文件解析代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">csv_parse</span>(<span class="params">file_data</span>):</span></span><br><span class="line">    file_bytes_obj = file_data.read()  <span class="comment"># file_data为BytesIO对象</span></span><br><span class="line">	<span class="comment"># 根据文件内容检测编码格式有时候会不准确, 这时可以尝试更范围的编码格式</span></span><br><span class="line">	<span class="comment"># 范围: gb18030 &gt; gb2312 &gt; gbk</span></span><br><span class="line">    encode = chardet.detect(file_bytes_obj)[<span class="string">&quot;encoding&quot;</span>]</span><br><span class="line"></span><br><span class="line">    file_string_io = StringIO(file_bytes_obj.decode(encode).replace(<span class="string">&#x27;\r&#x27;</span>, <span class="string">&#x27;\r\n&#x27;</span>))</span><br><span class="line">    csv_data = list(csv.reader(file_string_io))</span><br><span class="line"></span><br><span class="line">    start_row = <span class="number">-1</span>  <span class="comment"># 起始行</span></span><br><span class="line">    rows = len(csv_data)  <span class="comment"># 表格总行数</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 表头</span></span><br><span class="line">    header = csv_data[i]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历表记录</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">        col_dic = dict(zip(header, csv_data[i]))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 字典转json</span></span><br><span class="line">        raw_item = json.dumps(col_dic, ensure_ascii=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">yield</span> raw_item</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>如有遇到其他格式的文件，之后会持续更新到这篇文章中！</p>
-]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
@@ -808,35 +808,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Python</tag>
         <tag>Phoenix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark整合读写Elasticsearch</title>
-    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Elasticsearch/</url>
-    <content><![CDATA[<p>Elasticsearch提供了对Spark的支持，可以将ES中的索引（一行行的JSON数据）加载为RDD或DataFrame。</p>
-<a id="more"></a>
-
-<p>在使用elasticsearch-spark插件之前，需要在项目中添加依赖：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.elasticsearch<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>elasticsearch-spark-20_2.11<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="1-ES索引加载为RDD"><a href="#1-ES索引加载为RDD" class="headerlink" title="1. ES索引加载为RDD"></a>1. ES索引加载为RDD</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.elasticsearch.spark._</span><br><span class="line"></span><br><span class="line">val spark = SparkSession</span><br><span class="line">	.builder()</span><br><span class="line">	.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://master-1:9083&quot;</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">//es配置</span></span><br><span class="line">	.config(<span class="string">&quot;es.nodes&quot;</span>, <span class="string">&quot;node-1&quot;</span>) </span><br><span class="line">	.config(<span class="string">&quot;es.port&quot;</span>, <span class="string">&quot;9200&quot;</span>)</span><br><span class="line">	.config(<span class="string">&quot;pushdown&quot;</span>, <span class="string">&quot;true&quot;</span>)</span><br><span class="line"></span><br><span class="line">	.appName(<span class="string">&quot;Spark ES&quot;</span>)</span><br><span class="line">	.enableHiveSupport()</span><br><span class="line">	.getOrCreate()</span><br><span class="line"></span><br><span class="line">val rdd = spark.sparkContext.esJsonRDD(<span class="string">&quot;index_name&quot;</span>)</span><br><span class="line"></span><br><span class="line">spark.close()</span><br></pre></td></tr></table></figure>
-<p>配置项”es.nodes”的值只要给出ES集群中的一个数据节点即可，只要给出一个节点，ES就能找到集群中的其他节点。数据节点就是ES安装目录下配置文件(../elasticsearch-7.1.0/config/elasticsearch.yml)中”node.master”为true的节点。</p>
-<p>Spark从ES加载出来的数据是JSON String类型的RDD，根据请求体的结构就可以取出来具体的数据。</p>
-<h1 id="2-ES索引加载为DataFrame"><a href="#2-ES索引加载为DataFrame" class="headerlink" title="2. ES索引加载为DataFrame"></a>2. ES索引加载为DataFrame</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">val spark = SparkSession</span><br><span class="line">	.builder()</span><br><span class="line">	.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://master-1:9083&quot;</span>)</span><br><span class="line">	.appName(<span class="string">&quot;Spark ES&quot;</span>)</span><br><span class="line">	.enableHiveSupport()</span><br><span class="line">	.getOrCreate()</span><br><span class="line"></span><br><span class="line">val options = Map(</span><br><span class="line">	<span class="string">&quot;es.nodes&quot;</span> -&gt; <span class="string">&quot;node-1&quot;</span>,</span><br><span class="line">	<span class="string">&quot;es.port&quot;</span> -&gt; <span class="string">&quot;9200&quot;</span>,</span><br><span class="line">	<span class="string">&quot;pushdown&quot;</span> -&gt; <span class="string">&quot;true&quot;</span>)</span><br><span class="line"></span><br><span class="line">val df = spark.read.format(<span class="string">&quot;org.elasticsearch.spark.sql&quot;</span>)</span><br><span class="line">	.options(options)</span><br><span class="line">	.load(<span class="string">&quot;index_name&quot;</span>)</span><br><span class="line">	.where(<span class="string">&quot;col = 100&quot;</span>)</span><br><span class="line">	.select(<span class="string">&quot;col1&quot;</span>, <span class="string">&quot;col2&quot;</span>, <span class="string">&quot;col3&quot;</span>)</span><br><span class="line"></span><br><span class="line">spark.close()</span><br></pre></td></tr></table></figure>
-<p>将ES索引加载成DataFrame后便可以方便地进行表操作了。</p>
-<p>最后注意提交Spark任务时加上第三方依赖包elasticsearch-spark-20_2.11-7.1.0.jar。</p>
-<p>参考</p>
-<ol>
-<li><a href="https://www.elastic.co/guide/en/elasticsearch/hadoop/current/spark.html">https://www.elastic.co/guide/en/elasticsearch/hadoop/current/spark.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Elasticsearch</tag>
       </tags>
   </entry>
   <entry>
@@ -913,6 +884,35 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Spark</tag>
         <tag>HBase</tag>
         <tag>Phoenix</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spark整合读写Elasticsearch</title>
+    <url>/2020/10/11/Spark-Connector%E8%BF%9E%E6%8E%A5%E5%99%A8%E4%B9%8B%E6%95%B4%E5%90%88%E8%AF%BB%E5%86%99Elasticsearch/</url>
+    <content><![CDATA[<p>Elasticsearch提供了对Spark的支持，可以将ES中的索引（一行行的JSON数据）加载为RDD或DataFrame。</p>
+<a id="more"></a>
+
+<p>在使用elasticsearch-spark插件之前，需要在项目中添加依赖：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.elasticsearch<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>elasticsearch-spark-20_2.11<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="1-ES索引加载为RDD"><a href="#1-ES索引加载为RDD" class="headerlink" title="1. ES索引加载为RDD"></a>1. ES索引加载为RDD</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.elasticsearch.spark._</span><br><span class="line"></span><br><span class="line">val spark = SparkSession</span><br><span class="line">	.builder()</span><br><span class="line">	.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://master-1:9083&quot;</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">//es配置</span></span><br><span class="line">	.config(<span class="string">&quot;es.nodes&quot;</span>, <span class="string">&quot;node-1&quot;</span>) </span><br><span class="line">	.config(<span class="string">&quot;es.port&quot;</span>, <span class="string">&quot;9200&quot;</span>)</span><br><span class="line">	.config(<span class="string">&quot;pushdown&quot;</span>, <span class="string">&quot;true&quot;</span>)</span><br><span class="line"></span><br><span class="line">	.appName(<span class="string">&quot;Spark ES&quot;</span>)</span><br><span class="line">	.enableHiveSupport()</span><br><span class="line">	.getOrCreate()</span><br><span class="line"></span><br><span class="line">val rdd = spark.sparkContext.esJsonRDD(<span class="string">&quot;index_name&quot;</span>)</span><br><span class="line"></span><br><span class="line">spark.close()</span><br></pre></td></tr></table></figure>
+<p>配置项”es.nodes”的值只要给出ES集群中的一个数据节点即可，只要给出一个节点，ES就能找到集群中的其他节点。数据节点就是ES安装目录下配置文件(../elasticsearch-7.1.0/config/elasticsearch.yml)中”node.master”为true的节点。</p>
+<p>Spark从ES加载出来的数据是JSON String类型的RDD，根据请求体的结构就可以取出来具体的数据。</p>
+<h1 id="2-ES索引加载为DataFrame"><a href="#2-ES索引加载为DataFrame" class="headerlink" title="2. ES索引加载为DataFrame"></a>2. ES索引加载为DataFrame</h1><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">val spark = SparkSession</span><br><span class="line">	.builder()</span><br><span class="line">	.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://master-1:9083&quot;</span>)</span><br><span class="line">	.appName(<span class="string">&quot;Spark ES&quot;</span>)</span><br><span class="line">	.enableHiveSupport()</span><br><span class="line">	.getOrCreate()</span><br><span class="line"></span><br><span class="line">val options = Map(</span><br><span class="line">	<span class="string">&quot;es.nodes&quot;</span> -&gt; <span class="string">&quot;node-1&quot;</span>,</span><br><span class="line">	<span class="string">&quot;es.port&quot;</span> -&gt; <span class="string">&quot;9200&quot;</span>,</span><br><span class="line">	<span class="string">&quot;pushdown&quot;</span> -&gt; <span class="string">&quot;true&quot;</span>)</span><br><span class="line"></span><br><span class="line">val df = spark.read.format(<span class="string">&quot;org.elasticsearch.spark.sql&quot;</span>)</span><br><span class="line">	.options(options)</span><br><span class="line">	.load(<span class="string">&quot;index_name&quot;</span>)</span><br><span class="line">	.where(<span class="string">&quot;col = 100&quot;</span>)</span><br><span class="line">	.select(<span class="string">&quot;col1&quot;</span>, <span class="string">&quot;col2&quot;</span>, <span class="string">&quot;col3&quot;</span>)</span><br><span class="line"></span><br><span class="line">spark.close()</span><br></pre></td></tr></table></figure>
+<p>将ES索引加载成DataFrame后便可以方便地进行表操作了。</p>
+<p>最后注意提交Spark任务时加上第三方依赖包elasticsearch-spark-20_2.11-7.1.0.jar。</p>
+<p>参考</p>
+<ol>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/hadoop/current/spark.html">https://www.elastic.co/guide/en/elasticsearch/hadoop/current/spark.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Elasticsearch</tag>
       </tags>
   </entry>
   <entry>
@@ -1233,6 +1233,28 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>pyspark中遇到的坑</title>
+    <url>/2020/10/12/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<h1 id="模块依赖问题"><a href="#模块依赖问题" class="headerlink" title="模块依赖问题"></a>模块依赖问题</h1><p>因为平时写Spark应用程序基本都用Scala，之前有写过一段pyspark，但是都是在一个类或模块中实现所有的功能，也就自然没有遇到过要在一个模块中导入(import)自己写的另一个模块。这次遇到了，也发现了关于import模块时要注意的问题。</p>
+<a id="more"></a>
+
+<h2 id="1-PyCharm执行"><a href="#1-PyCharm执行" class="headerlink" title="1. PyCharm执行"></a>1. PyCharm执行</h2><p>要注意的是，当在一个模块(假如是module1)中导入相同目录(假设是demo)下的另一个模块(module2)中的变量list时，想当然的以为应该是这样导入 ——&gt; from module2 import list，但其实是这样 ——&gt; from demo.module2 import list，就是你要加上要导入模块的上级目录才行，如果想要实现这样导入 —— from module2 import list，需要进行一些设置，如下：<br><img src="01.png" alt="alt"></p>
+<p>还有另外一种可以不进行设置的方式 ——&gt; from .module2 import list，就是在要导入的模块的前面加一个.点表示导入的是同级目录下的模块。</p>
+<h2 id="2-集群提交"><a href="#2-集群提交" class="headerlink" title="2. 集群提交"></a>2. 集群提交</h2><p>提交命令：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master yarn \</span><br><span class="line">--deploy-mode cluster \</span><br><span class="line">--driver-memory 4G \</span><br><span class="line">--executor-memory 10G \</span><br><span class="line">--executor-cores 5 \</span><br><span class="line">--num-executors 6 \</span><br><span class="line">--conf &quot;spark.yarn.maxAppAttempts=1&quot; \</span><br><span class="line">--py-files /home/module2.py \</span><br><span class="line">/home/module1.py</span><br></pre></td></tr></table></figure>
+
+<p>因为spark任务在运行的时候一般都是分布式的，会先把程序代码module1.py发送到各个executor，而 module1.py 依赖模块 module2.py，那么也就需要把 module2.py 分发到各个executor节点，这就需要用到参数选项–py-files。</p>
+<p>在提交到远程集群执行的时候，并不需要像在本地那样还需要注意被导入模块的路径问题，只需要from module2 import list即可。</p>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>pymysql + DBUtils实现数据库连接池及数据批量读写</title>
     <url>/2020/10/11/pymysql-DBUtils%E5%AE%9E%E7%8E%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%89%B9%E9%87%8F%E8%AF%BB%E5%86%99/</url>
     <content><![CDATA[<h2 id="1-安装pymysql、DBUtils"><a href="#1-安装pymysql、DBUtils" class="headerlink" title="1. 安装pymysql、DBUtils"></a>1. 安装pymysql、DBUtils</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pymysql</span><br><span class="line">pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple DBUtils</span><br></pre></td></tr></table></figure>
@@ -1262,28 +1284,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>连接池</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>pyspark中遇到的坑</title>
-    <url>/2020/10/12/pyspark%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/</url>
-    <content><![CDATA[<h1 id="模块依赖问题"><a href="#模块依赖问题" class="headerlink" title="模块依赖问题"></a>模块依赖问题</h1><p>因为平时写Spark应用程序基本都用Scala，之前有写过一段pyspark，但是都是在一个类或模块中实现所有的功能，也就自然没有遇到过要在一个模块中导入(import)自己写的另一个模块。这次遇到了，也发现了关于import模块时要注意的问题。</p>
-<a id="more"></a>
-
-<h2 id="1-PyCharm执行"><a href="#1-PyCharm执行" class="headerlink" title="1. PyCharm执行"></a>1. PyCharm执行</h2><p>要注意的是，当在一个模块(假如是module1)中导入相同目录(假设是demo)下的另一个模块(module2)中的变量list时，想当然的以为应该是这样导入 ——&gt; from module2 import list，但其实是这样 ——&gt; from demo.module2 import list，就是你要加上要导入模块的上级目录才行，如果想要实现这样导入 —— from module2 import list，需要进行一些设置，如下：<br><img src="01.png" alt="alt"></p>
-<p>还有另外一种可以不进行设置的方式 ——&gt; from .module2 import list，就是在要导入的模块的前面加一个.点表示导入的是同级目录下的模块。</p>
-<h2 id="2-集群提交"><a href="#2-集群提交" class="headerlink" title="2. 集群提交"></a>2. 集群提交</h2><p>提交命令：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master yarn \</span><br><span class="line">--deploy-mode cluster \</span><br><span class="line">--driver-memory 4G \</span><br><span class="line">--executor-memory 10G \</span><br><span class="line">--executor-cores 5 \</span><br><span class="line">--num-executors 6 \</span><br><span class="line">--conf &quot;spark.yarn.maxAppAttempts=1&quot; \</span><br><span class="line">--py-files /home/module2.py \</span><br><span class="line">/home/module1.py</span><br></pre></td></tr></table></figure>
-
-<p>因为spark任务在运行的时候一般都是分布式的，会先把程序代码module1.py发送到各个executor，而 module1.py 依赖模块 module2.py，那么也就需要把 module2.py 分发到各个executor节点，这就需要用到参数选项–py-files。</p>
-<p>在提交到远程集群执行的时候，并不需要像在本地那样还需要注意被导入模块的路径问题，只需要from module2 import list即可。</p>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Python</tag>
       </tags>
   </entry>
   <entry>
