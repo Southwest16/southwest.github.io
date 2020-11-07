@@ -1592,4 +1592,42 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Spark性能优化</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Excel文件中的日期值被xlrd解析成了浮点数/小数</title>
+    <url>/2020/11/07/Excel%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84%E6%97%A5%E6%9C%9F%E5%80%BC%E8%A2%ABxlrd%E8%A7%A3%E6%9E%90%E6%88%90%E4%BA%86%E6%B5%AE%E7%82%B9%E6%95%B0-%E5%B0%8F%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>业务场景中，需要从Excel中提取出文件内容，在使用Python xlrd模块解析Excel的时候，文件中的时间格式变成了浮点小数。</p>
+<a id="more"></a>
+
+<p>原始数据如下图中所示：<br><img src="01.png" alt="alt"><br>经xlrd解析之后的数据如下图所示：<br><img src="02.png" alt="alt"><br>从以上两张图中可以看出，年月日 ‘2019/12/02’ 变成了 43801.0，时分秒 ‘11:07:46’ 变成了0.46372685185185186。但是，在用xlrd解析其他Excel文件的时候，明没有出现这种问题，具体原因还不明确，推断大概是因为Excel文件格式的原因？</p>
+<h1 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h1><p>在翻了xlrd官网文档之后，有一页关于<a href="https://xlrd.readthedocs.io/en/latest/dates.html">Dates in Excel spreadsheets</a>的介绍，Excel中的日期存在以下问题：</p>
+<ol>
+<li>日期没有用单独的数据类型来存储，而是用浮点数来存储的</li>
+<li>在Windows系统中，Excel在默认情况下，存储的日期是从1899-12-31T00:00:00到所存日期的天数。而Macintosh（Mac OS）中，默认是从1904-01-01T00:00:00开始计算的。</li>
+</ol>
+<p>看到这里，我们计算一下 2019/12/02 对应的浮点数43801.0，刚好是从1899-12-31T00:00:00 到 2019/12/02 所走过的天数。而 11:07:46 对应的浮点数0.46372685185185186，则是从 00:00:00 到 11:07:46 所走过的天数。</p>
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>那么怎么将浮点数转成标准的日期类型呢？xrld模块提供了xldate_as_datetime(xldate, datemode)函数，来把Excel date/time number转成<code>datetime.datetime</code>。</p>
+<ul>
+<li>xldate：Excel中的date/time number</li>
+<li>datemode：就是上面提到的两种日期模式：0代表1900-based模式；1代表1904-based模式。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">date_ymd = xlrd.xldate_as_datetime(<span class="number">43801.0</span>, data.datemode)</span><br><span class="line">print(date_value)  <span class="comment"># 2019-12-02 00:00:00</span></span><br><span class="line"></span><br><span class="line">date_hms = xlrd.xldate_as_datetime(<span class="number">0.4306712962962963</span>, data.datemode)</span><br><span class="line">print(date_value)  <span class="comment"># 1899-12-31 10:20:10</span></span><br></pre></td></tr></table></figure>
+<p>最后将date_ymd的年月日部分和date_hms的时分秒部分拼接在一起就是标准的时间格式了。</p>
+<p>如果在解析Excel的时候，就要将浮点类型的时间转成标准日期格式，那该怎么处理呢？下面是对Excel sheet中Cell内容进行日期格式化的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 打开一个电子表格文件进行数据提取</span></span><br><span class="line">data = xlrd.open_workbook(file_contents=a bytes object, encoding_override=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"><span class="comment"># 获取sheet表数据</span></span><br><span class="line">table = data.sheet_by_index(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">list_01 = []</span><br><span class="line"><span class="keyword">for</span> row <span class="keyword">in</span> range(start_row, rows):</span><br><span class="line">    list_02 = table.row_values(row)</span><br><span class="line">    <span class="keyword">for</span> col <span class="keyword">in</span> range(<span class="number">0</span>, table.ncols):</span><br><span class="line">        <span class="keyword">if</span> table.cell(row, col).ctype == <span class="number">3</span> <span class="keyword">and</span> type(table.cell(row, col).value) <span class="keyword">is</span> float:</span><br><span class="line">            date_value = xlrd.xldate_as_datetime(table.cell(row, col).value, data.datemode)</span><br><span class="line">            <span class="keyword">if</span> str(date_value).endswith(<span class="string">&quot;00:00:00&quot;</span>):</span><br><span class="line">                list_02[col] = str(date_value).split(<span class="string">&quot; &quot;</span>)[<span class="number">0</span>]</span><br><span class="line">            <span class="keyword">elif</span> str(date_value).startswith(<span class="string">&quot;1899-12-31&quot;</span>):</span><br><span class="line">                list_02[col] = str(date_value).split(<span class="string">&quot; &quot;</span>)[<span class="number">1</span>]</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                list_02[col] = date_value</span><br><span class="line">    list_01.append(list_02)</span><br></pre></td></tr></table></figure>
+<p>上面代码，关键是看第一个if判断的第一个条件table.cell(row, col).ctype == 3，sheet中的Cell这里的ctype有7中类型：<br>| 类型符号 | 类型编号 |  对应的Python值 |<br>|–|–|–|<br>| XL_CELL_EMPTY | 0 | empty string ‘’ |<br>| XL_CELL_TEXT| 1 | a Unicode string |<br>| XL_CELL_NUMBER| 2 | float |<br>| XL_CELL_DATE| 3 | float |<br>| XL_CELL_BOOLEAN| 4 | int; 1 means TRUE, 0 means FALSE |<br>| XL_CELL_ERROR| 5 | int representing internal Excel codes; for a text representation,refer to the supplied dictionary error_text_from_code |<br>| XL_CELL_BLANK | 6 | empty string ‘’. Note: this type will appear only when open_workbook(…,formatting_info=True) is used. |</p>
+<p>代码中判断是否等于3，就是判断当前Cell的内容是否是Date类型，如果是Date类型，我们就对其进行处理。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a href="https://xlrd.readthedocs.io/en/latest/dates.html">https://xlrd.readthedocs.io/en/latest/dates.html</a></li>
+<li><a href="https://xlrd.readthedocs.io/en/latest/api.html">https://xlrd.readthedocs.io/en/latest/api.html</a></li>
+<li><a href="https://github.com/python-excel/xlrd/blob/master/xlrd/sheet.py">https://github.com/python-excel/xlrd/blob/master/xlrd/sheet.py</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
 </search>
