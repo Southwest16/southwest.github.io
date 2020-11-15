@@ -20,18 +20,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="什么是背压在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做背压。">
+  <meta name="description" content="什么是反压在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做反压。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Flink和Spark Streaming中的背压">
+<meta property="og:title" content="Flink和Spark Streaming中反压机制的区别">
 <meta property="og:url" content="http://example.com/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/index.html">
 <meta property="og:site_name" content="aof的博客">
-<meta property="og:description" content="什么是背压在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做背压。">
+<meta property="og:description" content="什么是反压在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做反压。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/01.png">
 <meta property="og:image" content="http://example.com/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/02.png">
 <meta property="og:image" content="http://example.com/2020/10/12/Flink%E5%92%8CSpark-Streaming%E8%83%8C%E5%8E%8B/03.png">
 <meta property="article:published_time" content="2020-10-12T12:44:53.000Z">
-<meta property="article:modified_time" content="2020-10-24T05:46:43.539Z">
+<meta property="article:modified_time" content="2020-11-07T11:04:11.530Z">
 <meta property="article:author" content="aof">
 <meta property="article:tag" content="Flink">
 <meta property="article:tag" content="Spark Streaming">
@@ -51,7 +51,7 @@
   };
 </script>
 
-  <title>Flink和Spark Streaming中的背压 | aof的博客</title>
+  <title>Flink和Spark Streaming中反压机制的区别 | aof的博客</title>
   
 
 
@@ -212,7 +212,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Flink和Spark Streaming中的背压
+          Flink和Spark Streaming中反压机制的区别
         </h1>
 
         <div class="post-meta">
@@ -229,7 +229,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-10-24 13:46:43" itemprop="dateModified" datetime="2020-10-24T13:46:43+08:00">2020-10-24</time>
+                <time title="修改时间：2020-11-07 19:04:11" itemprop="dateModified" datetime="2020-11-07T19:04:11+08:00">2020-11-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -252,16 +252,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="什么是背压"><a href="#什么是背压" class="headerlink" title="什么是背压"></a>什么是背压</h2><p>在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做<strong>背压</strong>。</p>
+        <h2 id="什么是反压"><a href="#什么是反压" class="headerlink" title="什么是反压"></a>什么是反压</h2><p>在流处理系统中，出现下游消费者消费数据的速率跟不上上游生产者生产数据的速率的情况，就叫做<strong>反压</strong>。</p>
 <a id="more"></a>
 
-<h1 id="Spark-Streaming中的背压"><a href="#Spark-Streaming中的背压" class="headerlink" title="Spark Streaming中的背压"></a>Spark Streaming中的背压</h1><p>在Spark 1.5之前，流应用程序如果因为资源不足导致处理数据的速度跟不上接收数据的速度的情况，可以通过设置每秒所接收数据的最大条数来缓解这种情况。对于使用Receiver的方式可以通过设置’spark.streaming.receiver.maxRate’参数；对于使用Direct的方式设置参数’spark.streaming.kafka.maxRatePerPartition’。</p>
-<p>Spark在1.5版本中引入了背压功能，就不再需要设置上述的速率限制了，Spark Streaming会随着处理条件的变化，自动计算所需要的速率，并进行动态地调整，但前提条件是要通过设置参数’spark.streaming.backpressure.enabled’=true来启用这个功能，因为这个功能在默认情况下是未启用的。</p>
-<h1 id="Flink中的背压"><a href="#Flink中的背压" class="headerlink" title="Flink中的背压"></a>Flink中的背压</h1><p>Flink的web界面上提供了一个标签来监控正在运行的job的背压行为。如果你看一个task的back pressure warning为High的话，那就表明产生数据的速度要比下游算子的消费速度快。拿一个简单的Source -&gt; Sink的例子来说，就是Sink算子对上游的Source算子产生了背压。</p>
-<h2 id="Flink是如何监控背压的"><a href="#Flink是如何监控背压的" class="headerlink" title="Flink是如何监控背压的"></a>Flink是如何监控背压的</h2><p>Flink中的背压监控是通过反复获取运行任务的堆栈跟踪样本来实现的。JobManager会为job中的tasks重复调用Thread.getStackTrace()。</p>
-<p>下面是官方提供的示意图：<br><img src="01.png" alt="alt"><br>如果堆栈跟踪样本显示某个task线程被卡在了某个内部方法的调用中(从网络堆栈请求缓冲)，则表明该task存在背压。</p>
-<p>默认情况下，为了确认是否存在背压，Job Manager会每50ms为每个task触发100次堆栈跟踪。我们可以从Web界面上看到有多少堆栈跟踪被卡在了内部方法的调用中，例如，0.01表示100跟踪里面有一个被卡在该方法中。</p>
-<p>下面是不同的比率对应的背压情况：</p>
+<h1 id="Flink中的反压"><a href="#Flink中的反压" class="headerlink" title="Flink中的反压"></a>Flink中的反压</h1><p>Flink的web界面上提供了一个标签来监控正在运行的job的反压行为。如果你看一个task的back pressure warning为High的话，那就表明产生数据的速度要比下游算子的消费速度快。拿一个简单的Source -&gt; Sink的例子来说，就是Sink算子对上游的Source算子产生了反压。</p>
+<h2 id="Flink是如何监控反压的"><a href="#Flink是如何监控反压的" class="headerlink" title="Flink是如何监控反压的"></a>Flink是如何监控反压的</h2><p>Flink中的反压监控是通过反复获取运行任务的堆栈跟踪样本来实现的。JobManager会为job中的tasks重复调用Thread.getStackTrace()。</p>
+<p>下面是官方提供的示意图：<br><img src="01.png" alt="alt"><br>如果堆栈跟踪样本显示某个task线程被卡在了某个内部方法的调用中(从网络堆栈请求缓冲)，则表明该task存在反压。</p>
+<p>默认情况下，为了确认是否存在反压，Job Manager会每50ms为每个task触发100次堆栈跟踪。我们可以从Web界面上看到有多少堆栈跟踪被卡在了内部方法的调用中，例如，0.01表示100跟踪里面有一个被卡在该方法中。</p>
+<p>下面是不同的比率对应的反压情况：</p>
 <ul>
 <li><p><strong>OK</strong>: 0 &lt;= Ratio &lt;= 0.10</p>
 </li>
@@ -271,9 +269,11 @@
 <p>为了不让task managers因为频繁触发堆栈跟踪而负载过重，Web监控接口会每60秒刷新一次跟踪样本。</p>
 </li>
 </ul>
-<h2 id="背压状态"><a href="#背压状态" class="headerlink" title="背压状态"></a>背压状态</h2><p>我们可以在Job overview旁边找到 Back Pressure标签。</p>
-<p>如果tasks的背压状态是<strong>OK</strong>，则表明没有背压情况。如下图：<br><img src="02.png" alt="alt"></p>
-<p>如果状态是<strong>HIGH</strong>，则表明tasks出现了背压。如下图：<br><img src="03.png" alt="alt"></p>
+<h2 id="反压状态"><a href="#反压状态" class="headerlink" title="反压状态"></a>反压状态</h2><p>我们可以在Job overview旁边找到 Back Pressure标签。</p>
+<p>如果tasks的反压状态是<strong>OK</strong>，则表明没有反压情况。如下图：<br><img src="02.png" alt="alt"></p>
+<p>如果状态是<strong>HIGH</strong>，则表明tasks出现了反压。如下图：<br><img src="03.png" alt="alt"></p>
+<h1 id="Spark-Streaming中的反压"><a href="#Spark-Streaming中的反压" class="headerlink" title="Spark Streaming中的反压"></a>Spark Streaming中的反压</h1><p>在Spark 1.5之前，流应用程序如果因为资源不足导致处理数据的速度跟不上接收数据的速度的情况，可以通过设置每秒所接收数据的最大条数来缓解这种情况。对于使用Receiver的方式可以通过设置’spark.streaming.receiver.maxRate’参数；对于使用Direct的方式设置参数’spark.streaming.kafka.maxRatePerPartition’。</p>
+<p>Spark在1.5版本中引入了反压功能，就不再需要设置上述的速率限制了，Spark Streaming会随着处理条件的变化，自动计算所需要的速率，并进行动态地调整，但前提条件是要通过设置参数’spark.streaming.backpressure.enabled’=true来启用这个功能，因为这个功能在默认情况下是未启用的。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
 <li><a target="_blank" rel="noopener" href="https://spark.apache.org/docs/latest/streaming-programming-guide.html">https://spark.apache.org/docs/latest/streaming-programming-guide.html</a></li>
 <li><a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html">https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/back_pressure.html</a></li>
@@ -362,7 +362,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E8%83%8C%E5%8E%8B"><span class="nav-number">1.</span> <span class="nav-text">什么是背压</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-Streaming%E4%B8%AD%E7%9A%84%E8%83%8C%E5%8E%8B"><span class="nav-number"></span> <span class="nav-text">Spark Streaming中的背压</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink%E4%B8%AD%E7%9A%84%E8%83%8C%E5%8E%8B"><span class="nav-number"></span> <span class="nav-text">Flink中的背压</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E6%98%AF%E5%A6%82%E4%BD%95%E7%9B%91%E6%8E%A7%E8%83%8C%E5%8E%8B%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">Flink是如何监控背压的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E5%8E%8B%E7%8A%B6%E6%80%81"><span class="nav-number">2.</span> <span class="nav-text">背压状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number"></span> <span class="nav-text">参考</span></a></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8F%8D%E5%8E%8B"><span class="nav-number">1.</span> <span class="nav-text">什么是反压</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink%E4%B8%AD%E7%9A%84%E5%8F%8D%E5%8E%8B"><span class="nav-number"></span> <span class="nav-text">Flink中的反压</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E6%98%AF%E5%A6%82%E4%BD%95%E7%9B%91%E6%8E%A7%E5%8F%8D%E5%8E%8B%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">Flink是如何监控反压的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%8E%8B%E7%8A%B6%E6%80%81"><span class="nav-number">2.</span> <span class="nav-text">反压状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-Streaming%E4%B8%AD%E7%9A%84%E5%8F%8D%E5%8E%8B"><span class="nav-number"></span> <span class="nav-text">Spark Streaming中的反压</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number"></span> <span class="nav-text">参考</span></a></div>
       </div>
       <!--/noindex-->
 
