@@ -1,6 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spark集群安装</title>
+    <url>/2020/10/11/15%E5%88%86%E9%92%9F%E6%90%9E%E5%AE%9A-Spark%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>快速安装Spark集群。</p>
+<a id="more"></a>
+
+
+<p><font color=red>注：以下步骤中，从第1步到第8步，除了元数据库的安装之外，其他步骤都是要在集群所有节点上执行的！</font></p>
+<h1 id="1-官网下载Spark安装包"><a href="#1-官网下载Spark安装包" class="headerlink" title="1. 官网下载Spark安装包"></a>1. 官网下载Spark安装包</h1><p>下载要安装版本的安装包：<a href="https://archive.apache.org/dist/spark/">https://archive.apache.org/dist/spark/</a>。</p>
+<p>我这里下载的是：<a href="https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz%E3%80%82%E5%BB%BA%E8%AE%AE%E7%94%A8%E8%BF%85%E9%9B%B7%E4%B8%8B%E8%BD%BD%EF%BC%8C%E4%BC%9A%E6%AF%94%E8%BE%83%E5%BF%AB%E3%80%82">https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz。建议用迅雷下载，会比较快。</a></p>
+<h1 id="2-解压安装包"><a href="#2-解压安装包" class="headerlink" title="2. 解压安装包"></a>2. 解压安装包</h1><p>将下载好的安装包上传到集群某个节点的/opt目录，解压<br>tar -zxvf spark-2.3.1-bin-hadoop2.6.tgz spark</p>
+<h1 id="3-Spark配置"><a href="#3-Spark配置" class="headerlink" title="3. Spark配置"></a>3. Spark配置</h1><p>进入到Spark安装路径conf目录下：cd ../spark/conf/。复制以下3个文件：<br>cp spark-env.sh.template spark-env.sh<br>cp spark-defaults.conf.template spark-defaults.conf<br>cp log4j.properties.template log4j.properties(INFO改为WARN)</p>
+<h3 id="1-配置spark-env-sh"><a href="#1-配置spark-env-sh" class="headerlink" title="1. 配置spark-env.sh"></a>1. 配置spark-env.sh</h3><p>这个文件主要是配置Spark的环境变量。</p>
+<p>文件中添加以下环境变量，vi spark-env.sh：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=/etc/hadoop/conf <span class="comment"># Hadoop配置文件所在目录</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/cloudera/parcels/CDH/lib/hadoop <span class="comment"># Hadoop安装路径</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=\<span class="variable">$HADOOP_HOME</span>/lib/native:\<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
+<p>主要让Spark找到Hadoop的安装目录。</p>
+<h3 id="2-配置spark-defaults-conf"><a href="#2-配置spark-defaults-conf" class="headerlink" title="2. 配置spark-defaults.conf"></a>2. 配置spark-defaults.conf</h3><p>这个文件主要是一些Spark相关的配置项。<br>以下以Spark on YARN为例，vi spark-defaults.conf：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">spark.master				yarn <span class="comment"># 指定yarn作为资源调度框架</span></span><br><span class="line">spark.eventLog.enabled		<span class="literal">true</span> <span class="comment"># 启动事件日志, 以便后续日志分析</span></span><br><span class="line">spark.eventLog.dir			hdfs://master-1:8021/spark_eventlog</span><br><span class="line">spark.serializer			org.apache.spark.serializer.KryoSerializer <span class="comment"># Kryo序列化性能要好于默认的Java序列化</span></span><br><span class="line">spark.driver.memory			2g <span class="comment"># 指定默认Driver端内存</span></span><br><span class="line">spark.yarn.archive			hdfs://master-1:8021/archive <span class="comment"># 将Spark程序运行所需的jar打包放到这个目录，避免每次提交任务都要从本地Spark安装目录下拷贝jar包</span></span><br></pre></td></tr></table></figure>
+<p>Spark有不计其数的配置项，可根据个人需求进行配置。具体可参考官网<a href="https://spark.apache.org/docs/latest/configuration.html">https://spark.apache.org/docs/latest/configuration.html</a>。</p>
+<h3 id="3-配置log4j-properties"><a href="#3-配置log4j-properties" class="headerlink" title="3. 配置log4j.properties"></a>3. 配置log4j.properties</h3><p>可以配置Spark任务的日志级别。</p>
+<h1 id="4-scp安装文件"><a href="#4-scp安装文件" class="headerlink" title="4. scp安装文件"></a>4. scp安装文件</h1><p>将解压配置好的Spark安装文件拷贝到其他节点：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scp username@hostname:/opt/spark username@hostname:/opt</span><br></pre></td></tr></table></figure>
+
+<h1 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h1><ul>
+<li><p>启动spark shell命令行，写一段简单的Spark程序：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-shell</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>或启动spark sql命令行，执行一些简单的SQL语句：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-sql</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CDH集群安装部署</title>
     <url>/2020/10/11/CDH%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>在云计算时代，可能很多公司为了成本的考虑，会采用第三方厂商提供的大数据集群，比如阿里的Maxcompute、华为的FusionInsight等。但选择安装开源的软件，能让你更加清楚其内部的原理，也能更好的针对自己公司的业务需求来定制软件进行二次开发。</p>
@@ -120,45 +159,6 @@
         <tag>Cloudera</tag>
         <tag>CDH</tag>
         <tag>集群安装部署</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spark集群安装</title>
-    <url>/2020/10/11/15%E5%88%86%E9%92%9F%E6%90%9E%E5%AE%9A-Spark%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>快速安装Spark集群。</p>
-<a id="more"></a>
-
-
-<p><font color=red>注：以下步骤中，从第1步到第8步，除了元数据库的安装之外，其他步骤都是要在集群所有节点上执行的！</font></p>
-<h1 id="1-官网下载Spark安装包"><a href="#1-官网下载Spark安装包" class="headerlink" title="1. 官网下载Spark安装包"></a>1. 官网下载Spark安装包</h1><p>下载要安装版本的安装包：<a href="https://archive.apache.org/dist/spark/">https://archive.apache.org/dist/spark/</a>。</p>
-<p>我这里下载的是：<a href="https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz%E3%80%82%E5%BB%BA%E8%AE%AE%E7%94%A8%E8%BF%85%E9%9B%B7%E4%B8%8B%E8%BD%BD%EF%BC%8C%E4%BC%9A%E6%AF%94%E8%BE%83%E5%BF%AB%E3%80%82">https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.6.tgz。建议用迅雷下载，会比较快。</a></p>
-<h1 id="2-解压安装包"><a href="#2-解压安装包" class="headerlink" title="2. 解压安装包"></a>2. 解压安装包</h1><p>将下载好的安装包上传到集群某个节点的/opt目录，解压<br>tar -zxvf spark-2.3.1-bin-hadoop2.6.tgz spark</p>
-<h1 id="3-Spark配置"><a href="#3-Spark配置" class="headerlink" title="3. Spark配置"></a>3. Spark配置</h1><p>进入到Spark安装路径conf目录下：cd ../spark/conf/。复制以下3个文件：<br>cp spark-env.sh.template spark-env.sh<br>cp spark-defaults.conf.template spark-defaults.conf<br>cp log4j.properties.template log4j.properties(INFO改为WARN)</p>
-<h3 id="1-配置spark-env-sh"><a href="#1-配置spark-env-sh" class="headerlink" title="1. 配置spark-env.sh"></a>1. 配置spark-env.sh</h3><p>这个文件主要是配置Spark的环境变量。</p>
-<p>文件中添加以下环境变量，vi spark-env.sh：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=/etc/hadoop/conf <span class="comment"># Hadoop配置文件所在目录</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/cloudera/parcels/CDH/lib/hadoop <span class="comment"># Hadoop安装路径</span></span><br><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH=\<span class="variable">$HADOOP_HOME</span>/lib/native:\<span class="variable">$LD_LIBRARY_PATH</span></span><br></pre></td></tr></table></figure>
-<p>主要让Spark找到Hadoop的安装目录。</p>
-<h3 id="2-配置spark-defaults-conf"><a href="#2-配置spark-defaults-conf" class="headerlink" title="2. 配置spark-defaults.conf"></a>2. 配置spark-defaults.conf</h3><p>这个文件主要是一些Spark相关的配置项。<br>以下以Spark on YARN为例，vi spark-defaults.conf：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">spark.master				yarn <span class="comment"># 指定yarn作为资源调度框架</span></span><br><span class="line">spark.eventLog.enabled		<span class="literal">true</span> <span class="comment"># 启动事件日志, 以便后续日志分析</span></span><br><span class="line">spark.eventLog.dir			hdfs://master-1:8021/spark_eventlog</span><br><span class="line">spark.serializer			org.apache.spark.serializer.KryoSerializer <span class="comment"># Kryo序列化性能要好于默认的Java序列化</span></span><br><span class="line">spark.driver.memory			2g <span class="comment"># 指定默认Driver端内存</span></span><br><span class="line">spark.yarn.archive			hdfs://master-1:8021/archive <span class="comment"># 将Spark程序运行所需的jar打包放到这个目录，避免每次提交任务都要从本地Spark安装目录下拷贝jar包</span></span><br></pre></td></tr></table></figure>
-<p>Spark有不计其数的配置项，可根据个人需求进行配置。具体可参考官网<a href="https://spark.apache.org/docs/latest/configuration.html">https://spark.apache.org/docs/latest/configuration.html</a>。</p>
-<h3 id="3-配置log4j-properties"><a href="#3-配置log4j-properties" class="headerlink" title="3. 配置log4j.properties"></a>3. 配置log4j.properties</h3><p>可以配置Spark任务的日志级别。</p>
-<h1 id="4-scp安装文件"><a href="#4-scp安装文件" class="headerlink" title="4. scp安装文件"></a>4. scp安装文件</h1><p>将解压配置好的Spark安装文件拷贝到其他节点：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scp username@hostname:/opt/spark username@hostname:/opt</span><br></pre></td></tr></table></figure>
-
-<h1 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h1><ul>
-<li><p>启动spark shell命令行，写一段简单的Spark程序：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-shell</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>或启动spark sql命令行，执行一些简单的SQL语句：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">./bin/spark<span class="literal">-sql</span> -<span class="literal">-master</span> yarn -<span class="literal">-num</span><span class="literal">-executors</span> <span class="number">2</span> -<span class="literal">-executor</span><span class="literal">-cores</span> <span class="number">1</span> -<span class="literal">-executor</span><span class="literal">-memory</span> <span class="number">512</span>M</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
       </tags>
   </entry>
   <entry>
@@ -421,37 +421,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
-    <title>JSON数据转成Spark Dataset/DataFrame</title>
-    <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
-    <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
-<a id="more"></a>
-
-<p>接下来我们就看看该如何将各种格式的JSON数据转成DataFrame。</p>
-<h2 id="1-读取JSON文件"><a href="#1-读取JSON文件" class="headerlink" title="1. 读取JSON文件"></a>1. 读取JSON文件</h2><p>读取指定路径下的json文件（或者存放json文件的目录），加载为DataFrame。</p>
-<h6 id="本地文件"><a href="#本地文件" class="headerlink" title="本地文件"></a>本地文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//本地路径</span></span><br><span class="line">val path = <span class="string">&quot;file:/opt/package/jar/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
-<h6 id="HDFS文件"><a href="#HDFS文件" class="headerlink" title="HDFS文件"></a>HDFS文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//HDFS路径</span></span><br><span class="line">val path = <span class="string">&quot;/file/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-List、Seq"><a href="#2-List、Seq" class="headerlink" title="2. List、Seq"></a>2. List、Seq</h2><p>将一个List或Seq加载为DataFrame。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line">val ds = spark.createDataset(<span class="string">&quot;&quot;</span><span class="string">&quot;[&#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Spark<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 10&#125;, &#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Flink<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 5&#125;]&quot;</span><span class="string">&quot;&quot;</span> :: Nil)</span><br><span class="line">spark.read</span><br><span class="line">	<span class="comment">//默认的timestampFormat为 yyyy-MM-dd&#x27;T&#x27;HH:mm:ss.SSSXXX, SSS为毫秒数, XXX为非法字符(会报错&quot;java.lang.IllegalArgumentException: Illegal pattern component: XXX&quot;),</span></span><br><span class="line">	<span class="comment">//需要手动设置时区为Z(即UTC时间)</span></span><br><span class="line">	.option(<span class="string">&quot;timestampFormat&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm:ss.SSSZ&quot;</span>)</span><br><span class="line">	.json(ds)</span><br><span class="line">	.show()</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="3-JSON-String类型的Column"><a href="#3-JSON-String类型的Column" class="headerlink" title="3. JSON String类型的Column"></a>3. JSON String类型的Column</h2><p>JSON String类型的Column, 拿Hive来举例的话，就是Hive表中的某一列，其类型为String，其值是JSONArray类型（”[{‘name’: ‘Spark’, ‘age’: 10}, {‘name’: ‘Flink’, ‘age’: 5}]”），或者是JSONObject类型（”{‘name’: ‘Spark’, ‘age’: 10}”）。</p>
-<p>这种情况可以用以下两种方式处理：</p>
-<h6 id="方式一-map函数处理"><a href="#方式一-map函数处理" class="headerlink" title="方式一(map函数处理)"></a>方式一(map函数处理)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//JSON string类型的Dataset转成DataFrame</span></span><br><span class="line">val ds = df.map(row =&gt; JSON.parseArray(row.toString).get(<span class="number">0</span>).toString) </span><br><span class="line"></span><br><span class="line">ds.show()</span><br></pre></td></tr></table></figure>
-
-<h6 id="方式二-指定schema"><a href="#方式二-指定schema" class="headerlink" title="方式二(指定schema)"></a>方式二(指定schema)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line">val schema = ArrayType(StructType(StructField(<span class="string">&quot;name&quot;</span>, StringType):: StructField(<span class="string">&quot;age&quot;</span>, IntegerType)::Nil))</span><br><span class="line"></span><br><span class="line">val resultDF = df.select(from_json($<span class="string">&quot;person_info&quot;</span>, schema).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//将JSONArray列映射到一个schema上</span></span><br><span class="line">	.select(explode($<span class="string">&quot;info&quot;</span>).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//展开JSONArray中的元素(JSONObject)为多行</span></span><br><span class="line">	.select(<span class="string">&quot;info.name&quot;</span>, <span class="string">&quot;info.age&quot;</span>) <span class="comment">//获取每个JSONObject中每个key对应的value</span></span><br><span class="line"></span><br><span class="line">resultDF.show()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>JSON</tag>
-        <tag>DataFrame</tag>
-        <tag>Dataset</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java死锁产生的条件及死锁判断排查</title>
     <url>/2020/10/11/Java%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E6%9D%A1%E4%BB%B6%E5%8F%8A%E6%AD%BB%E9%94%81%E5%88%A4%E6%96%AD%E6%8E%92%E6%9F%A5/</url>
     <content><![CDATA[<h2 id="死锁产生的必要条件"><a href="#死锁产生的必要条件" class="headerlink" title="死锁产生的必要条件"></a>死锁产生的必要条件</h2><p>要达到死锁，必须具备以下4个条件：</p>
@@ -480,6 +449,37 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>Java</tag>
         <tag>死锁</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JSON数据转成Spark Dataset/DataFrame</title>
+    <url>/2020/10/11/JSON%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%88%90Spark-Dataset-DataFrame/</url>
+    <content><![CDATA[<p>在日常使用Spark处理数据时, 半结构化的JSON数据(JSONObject, JSONArray)可能是最常见的一种数据结构，那么能熟练并快速地处理JSON格式数据应该是数据开发人员的必备技能。</p>
+<a id="more"></a>
+
+<p>接下来我们就看看该如何将各种格式的JSON数据转成DataFrame。</p>
+<h2 id="1-读取JSON文件"><a href="#1-读取JSON文件" class="headerlink" title="1. 读取JSON文件"></a>1. 读取JSON文件</h2><p>读取指定路径下的json文件（或者存放json文件的目录），加载为DataFrame。</p>
+<h6 id="本地文件"><a href="#本地文件" class="headerlink" title="本地文件"></a>本地文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//本地路径</span></span><br><span class="line">val path = <span class="string">&quot;file:/opt/package/jar/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
+<h6 id="HDFS文件"><a href="#HDFS文件" class="headerlink" title="HDFS文件"></a>HDFS文件</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//HDFS路径</span></span><br><span class="line">val path = <span class="string">&quot;/file/bank_statement_detail.json&quot;</span></span><br><span class="line">spark.read.json(path).show()</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-List、Seq"><a href="#2-List、Seq" class="headerlink" title="2. List、Seq"></a>2. List、Seq</h2><p>将一个List或Seq加载为DataFrame。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line">val ds = spark.createDataset(<span class="string">&quot;&quot;</span><span class="string">&quot;[&#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Spark<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 10&#125;, &#123;&quot;</span>name<span class="string">&quot;: &quot;</span>Flink<span class="string">&quot;, &quot;</span>age<span class="string">&quot;: 5&#125;]&quot;</span><span class="string">&quot;&quot;</span> :: Nil)</span><br><span class="line">spark.read</span><br><span class="line">	<span class="comment">//默认的timestampFormat为 yyyy-MM-dd&#x27;T&#x27;HH:mm:ss.SSSXXX, SSS为毫秒数, XXX为非法字符(会报错&quot;java.lang.IllegalArgumentException: Illegal pattern component: XXX&quot;),</span></span><br><span class="line">	<span class="comment">//需要手动设置时区为Z(即UTC时间)</span></span><br><span class="line">	.option(<span class="string">&quot;timestampFormat&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm:ss.SSSZ&quot;</span>)</span><br><span class="line">	.json(ds)</span><br><span class="line">	.show()</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="3-JSON-String类型的Column"><a href="#3-JSON-String类型的Column" class="headerlink" title="3. JSON String类型的Column"></a>3. JSON String类型的Column</h2><p>JSON String类型的Column, 拿Hive来举例的话，就是Hive表中的某一列，其类型为String，其值是JSONArray类型（”[{‘name’: ‘Spark’, ‘age’: 10}, {‘name’: ‘Flink’, ‘age’: 5}]”），或者是JSONObject类型（”{‘name’: ‘Spark’, ‘age’: 10}”）。</p>
+<p>这种情况可以用以下两种方式处理：</p>
+<h6 id="方式一-map函数处理"><a href="#方式一-map函数处理" class="headerlink" title="方式一(map函数处理)"></a>方式一(map函数处理)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//JSON string类型的Dataset转成DataFrame</span></span><br><span class="line">val ds = df.map(row =&gt; JSON.parseArray(row.toString).get(<span class="number">0</span>).toString) </span><br><span class="line"></span><br><span class="line">ds.show()</span><br></pre></td></tr></table></figure>
+
+<h6 id="方式二-指定schema"><a href="#方式二-指定schema" class="headerlink" title="方式二(指定schema)"></a>方式二(指定schema)</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.types._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> spark.implicits._</span><br><span class="line"></span><br><span class="line"><span class="comment">//person_info为string类型的JSONArray(&quot;[&#123;&#x27;name&#x27;: &#x27;Spark&#x27;, &#x27;age&#x27;: 10&#125;, &#123;&#x27;name&#x27;: &#x27;Flink&#x27;, &#x27;age&#x27;: 5&#125;]&quot;)</span></span><br><span class="line">val df = spark.read.table(<span class="string">&quot;db_name.table_name&quot;</span>).select(<span class="string">&quot;person_info&quot;</span>)</span><br><span class="line"></span><br><span class="line">val schema = ArrayType(StructType(StructField(<span class="string">&quot;name&quot;</span>, StringType):: StructField(<span class="string">&quot;age&quot;</span>, IntegerType)::Nil))</span><br><span class="line"></span><br><span class="line">val resultDF = df.select(from_json($<span class="string">&quot;person_info&quot;</span>, schema).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//将JSONArray列映射到一个schema上</span></span><br><span class="line">	.select(explode($<span class="string">&quot;info&quot;</span>).as(<span class="string">&quot;info&quot;</span>)) <span class="comment">//展开JSONArray中的元素(JSONObject)为多行</span></span><br><span class="line">	.select(<span class="string">&quot;info.name&quot;</span>, <span class="string">&quot;info.age&quot;</span>) <span class="comment">//获取每个JSONObject中每个key对应的value</span></span><br><span class="line"></span><br><span class="line">resultDF.show()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>JSON</tag>
+        <tag>DataFrame</tag>
+        <tag>Dataset</tag>
       </tags>
   </entry>
   <entry>
@@ -836,6 +836,29 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>Python读写Phoenix</title>
+    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
+    <content><![CDATA[<p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
+<a id="more"></a>
+
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Phoenix</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Phoenix</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python读写Elasticsearch、HBase、Hive</title>
     <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Elasticsearch%E3%80%81HBase%E3%80%81Hive/</url>
     <content><![CDATA[<a id="more"></a>
@@ -867,29 +890,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
         <tag>Hive</tag>
         <tag>Elasticsearch</tag>
         <tag>HBase</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python读写Phoenix</title>
-    <url>/2020/10/11/Python%E8%AF%BB%E5%86%99Phoenix/</url>
-    <content><![CDATA[<p>Apache Phoenix的Python驱动程序实现了Python DB 2.0 API，来通过Phoenix Query Server访问Phoenix。</p>
-<a id="more"></a>
-
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip3 install phoenixdb</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p>Python版本：3.6.5<br>Phoenix版本：4.14</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> phoenixdb</span><br><span class="line"><span class="keyword">import</span> phoenixdb.cursor</span><br><span class="line"></span><br><span class="line">database_url = <span class="string">&#x27;http://localhost:8765/&#x27;</span> <span class="comment"># 8765为连接Phoenix的默认端口号</span></span><br><span class="line">conn = phoenixdb.connect(database_url, autocommit=<span class="literal">True</span>) <span class="comment"># 注意要设置自动提交</span></span><br><span class="line"></span><br><span class="line">cursor = conn.cursor()</span><br><span class="line">cursor.execute(<span class="string">&quot;CREATE TABLE users (id INTEGER PRIMARY KEY, username VARCHAR)&quot;</span>)</span><br><span class="line">cursor.execute(<span class="string">&quot;UPSERT INTO users VALUES (?, ?)&quot;</span>, (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>))</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users&quot;</span>)</span><br><span class="line">print(cursor.fetchall())</span><br><span class="line"></span><br><span class="line">cursor = conn.cursor(cursor_factory=phoenixdb.cursor.DictCursor)</span><br><span class="line">cursor.execute(<span class="string">&quot;SELECT * FROM users WHERE id=1&quot;</span>)</span><br><span class="line">print(cursor.fetchone()[<span class="string">&#x27;USERNAME&#x27;</span>])</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="程序执行"><a href="#程序执行" class="headerlink" title="程序执行"></a>程序执行</h1><p>执行Python程序之前必须先启动Phoenix Query Server，具体就是在Phoenix安装路径下执行如下脚本：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">bin/queryserver.py start</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Phoenix</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Phoenix</tag>
       </tags>
   </entry>
   <entry>
@@ -993,8 +993,8 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </categories>
       <tags>
         <tag>Spark</tag>
-        <tag>HBase</tag>
         <tag>Phoenix</tag>
+        <tag>HBase</tag>
       </tags>
   </entry>
   <entry>
@@ -1462,6 +1462,31 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       </tags>
   </entry>
   <entry>
+    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
+    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
+    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
+<a id="more"></a>
+
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
+<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
+<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
+<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
+]]></content>
+      <categories>
+        <category>Spark</category>
+      </categories>
+      <tags>
+        <tag>Spark</tag>
+        <tag>Hive</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>数仓维度数据建模</title>
     <url>/2020/10/11/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E6%9E%B6%E6%9E%84%E3%80%81%E7%BB%B4%E5%BA%A6%E6%95%B0%E6%8D%AE%E5%BB%BA%E6%A8%A1%E3%80%81%E9%9B%AA%E8%8A%B1%E6%A8%A1%E5%9E%8B%E5%92%8C%E6%98%9F%E5%9E%8B%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[<p>在GeeksforGeeks上看到了几篇关于数据仓库架构、维度数据建模的文章，进行翻译整理并加入了一些自己的理解，输出了这篇文章。</p>
@@ -1546,31 +1571,6 @@ Caused by: java.io.IOException: Check-sum mismatch between</code></pre>
       <tags>
         <tag>数据仓库</tag>
         <tag>维度模型</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>本地Spark连接远程集群Hive(Scala/Python)</title>
-    <url>/2020/10/11/%E6%9C%AC%E5%9C%B0Spark%E8%BF%9E%E6%8E%A5%E8%BF%9C%E7%A8%8B%E9%9B%86%E7%BE%A4Hive-Scala-Python/</url>
-    <content><![CDATA[<h1 id="为什么要在本地使用Spark连接Hive？"><a href="#为什么要在本地使用Spark连接Hive？" class="headerlink" title="为什么要在本地使用Spark连接Hive？"></a>为什么要在本地使用Spark连接Hive？</h1><p>很多时候，我们在编写好Spark应用程序之后，想要读取Hive表测试一下，但又不想进行打jar包、上传集群、spark-submit这一系列麻烦的操作时，那我们就可以在本地运行Spark应用的main函数直接读取远程的Hive。</p>
-<a id="more"></a>
-
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>Spark版本：2.0+</p>
-<h2 id="1-Scala实现"><a href="#1-Scala实现" class="headerlink" title="1. Scala实现"></a>1. Scala实现</h2><p>代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">object SparkDemo &#123;</span><br><span class="line">	val spark = SparkSession</span><br><span class="line">		.builder()</span><br><span class="line">		.appName(<span class="string">&quot;Spark to Hive&quot;</span>)</span><br><span class="line">		.master(<span class="string">&quot;local[4]&quot;</span>)</span><br><span class="line">		.config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>)</span><br><span class="line">		.enableHiveSupport()</span><br><span class="line">		.getOrCreate()</span><br><span class="line">	</span><br><span class="line">	val df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(<span class="keyword">false</span>)</span><br><span class="line"></span><br><span class="line">	spark.close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码中在创建SparkSession实例时的配置项 “hive.metastore.uris” 的值以个人情况而定，具体配置对应的是你集群中Hive安装目录下的这个文件 ../conf/hive-site.xml 中的 hive.metastore.uris，这个配置表示Hive的Metastore Server所在的节点。</p>
-<p><font color=Red>注意</font>：一般来讲，bigdata01，bigdata02都是集群中节点的别名，并不是具体的IP地址，所以你还需要把集群某个节点下文件 /etc/hosts 中的配置拷贝到你Windows电脑(本人用的Windows)的这个 C:\Windows\System32\drivers\etc\hosts 文件中，这样才能在本地访问集群Hive的元数据服务器节点。具体配置就长下面这个样子：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">10.1.11.10           bigdata01</span><br><span class="line">10.1.11.11           bigdata02</span><br><span class="line">10.1.11.12           bigdata03</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-pyspark实现"><a href="#2-pyspark实现" class="headerlink" title="2. pyspark实现"></a>2. pyspark实现</h2><p>代码如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession</span><br><span class="line"></span><br><span class="line">os.environ[<span class="string">&quot;SPARK_HOME&quot;</span>] = <span class="string">&quot;F:\App\spark-2.3.1-bin-hadoop2.6&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">	spark = SparkSession\</span><br><span class="line">        .builder \</span><br><span class="line">        .appName(<span class="string">&quot;Spark to Hive&quot;</span>) \</span><br><span class="line">        .master(<span class="string">&quot;local[4]&quot;</span>) \</span><br><span class="line">        .config(<span class="string">&quot;hive.metastore.uris&quot;</span>, <span class="string">&quot;thrift://bigdata01:9083,thrift://bigdata02:9083&quot;</span>) \</span><br><span class="line">        .enableHiveSupport()\</span><br><span class="line">        .getOrCreate()</span><br><span class="line">	</span><br><span class="line">	df = spark.read.table(<span class="string">&quot;db.table&quot;</span>)</span><br><span class="line">	df.show(truncate=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">	spark.stop()</span><br></pre></td></tr></table></figure>
-<p>pyspark版本跟Scala不同的地方在于，pyspark运行时会依赖Spark的一些文件，因此需要设置环境变量SPARK_HOME，你可以到<a href="http://spark.apache.org/downloads.html">Spark官网</a>下载相应版本的Spark，文件名称spark-2.3.3-bin-hadoop2.6.tgz；下载之后，解压到指定目录下；最后，配置环境变量SPARK_HOME的值为之前解压文件的根路径即可。</p>
-]]></content>
-      <categories>
-        <category>Spark</category>
-      </categories>
-      <tags>
-        <tag>Spark</tag>
-        <tag>Hive</tag>
       </tags>
   </entry>
   <entry>
